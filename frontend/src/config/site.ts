@@ -464,4 +464,4 @@ export const CREDIT_PACKS: CreditPack[] = [
 ];
 
 /** 注册赠送：够一条 5 秒 480p 体验视频（需通过设备指纹 / 邮箱风控） */
-export const FREE_TRIAL = { credits: 23, seconds: 5, resolution: "480p" as Resolution };
+export const FREE_TRIAL = { credits: 30, seconds: 6, resolution: "480p" as Resolution };

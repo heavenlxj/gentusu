@@ -43,12 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getVisitorId();
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user;
-      setUser(u ? { id: u.id, email: u.email, avatarUrl: u.user_metadata?.avatar_url, name: u.user_metadata?.full_name } : null);
+      setUser(u ? { id: u.id, email: u.email, avatarUrl: u.user_metadata?.avatar_url ?? u.user_metadata?.picture, name: u.user_metadata?.full_name ?? u.user_metadata?.name } : null);
       setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const u = session?.user;
-      setUser(u ? { id: u.id, email: u.email, avatarUrl: u.user_metadata?.avatar_url, name: u.user_metadata?.full_name } : null);
+      setUser(u ? { id: u.id, email: u.email, avatarUrl: u.user_metadata?.avatar_url ?? u.user_metadata?.picture, name: u.user_metadata?.full_name ?? u.user_metadata?.name } : null);
     });
     return () => sub.subscription.unsubscribe();
   }, []);

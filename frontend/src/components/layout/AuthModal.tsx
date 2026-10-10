@@ -21,31 +21,31 @@ export function AuthModal() {
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-ink-950/80 backdrop-blur-md" onClick={closeAuth} />
-      <div className="relative grid w-full max-w-3xl animate-rise overflow-hidden rounded-[32px] border border-white/10 bg-ink-900 md:grid-cols-2">
+      <div className="relative grid max-h-[calc(100dvh-2rem)] w-full max-w-5xl animate-rise overflow-y-auto rounded-[32px] border border-white/10 bg-ink-900 shadow-chakra md:grid-cols-[1.1fr_1fr] md:overflow-hidden">
         <div className="hidden md:block">
-          <CompareSlider before={MODES[0].example.before} after={MODES[0].example.after} poster={MODES[0].example.poster} beforePoster={MODES[0].example.beforePoster} className="h-full min-h-[420px] w-full" />
+          <CompareSlider before={MODES[0].example.before} after={MODES[0].example.after} poster={MODES[0].example.poster} beforePoster={MODES[0].example.beforePoster} className="h-full min-h-[560px] w-full" />
         </div>
-        <div className="relative flex flex-col justify-center p-8">
+        <div className="relative flex flex-col justify-center p-8 sm:p-10 lg:p-12">
           <button type="button" onClick={closeAuth} className="absolute right-4 top-4 rounded-full p-2 text-white/50 hover:bg-white/5 hover:text-white" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
           <p className="eyebrow">幻術 · Sign in</p>
-          <h3 className="mt-3 font-display text-3xl font-bold leading-tight">Cast your first illusion</h3>
-          <p className="mt-3 text-sm text-white/60">Your uploads stay private, are never used for training and can be deleted anytime.</p>
-          <div className="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm">
+          <h3 className="mt-3 font-display text-3xl font-bold leading-tight lg:text-4xl">Cast your first illusion</h3>
+          <p className="mt-4 text-white/60">Your uploads stay private, are never used for training and can be deleted anytime.</p>
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm">
             <Gift className="h-5 w-5 flex-none text-chakra-400" />
             <span>
-              New accounts get <b>{FREE_TRIAL.credits} free credits</b> — enough for a {FREE_TRIAL.seconds}s {FREE_TRIAL.resolution} clip in any mode (watermarked).
+              Sign up and find <b>{FREE_TRIAL.credits} free credits</b> up your sleeve. No card, no catch — just magic.
             </span>
           </div>
           {authError && (
             <p className="mt-3 rounded-2xl border border-red-500/30 bg-red-950/40 p-3 text-sm text-red-100">{authError}</p>
           )}
-          <button type="button" onClick={onGoogle} disabled={loading} className="mt-6 flex w-full items-center justify-center gap-3 rounded-full bg-white px-6 py-3.5 font-semibold text-ink-950 transition hover:bg-white/90 disabled:opacity-60">
+          <button type="button" onClick={onGoogle} disabled={loading} className="mt-8 flex w-full items-center justify-center gap-3 rounded-full bg-white px-6 py-4 text-lg font-semibold text-ink-950 transition hover:bg-white/90 disabled:opacity-60">
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
             Continue with Google
           </button>
-          <p className="mt-4 text-center text-[11px] text-white/35">By continuing you confirm you have the right to use every likeness and clip you upload.</p>
+          <p className="mt-5 text-center text-xs text-white/35">By continuing you confirm you have the right to use every likeness and clip you upload.</p>
         </div>
       </div>
     </div>

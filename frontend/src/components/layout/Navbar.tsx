@@ -6,6 +6,20 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { cn } from "@/lib/cn";
 import { useTheme } from "@/lib/theme";
 
+function Avatar({ url, label }: { url?: string; label: string }) {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => setBroken(false), [url]);
+  return (
+    <div title={label} className="flex h-9 w-9 flex-none items-center justify-center overflow-hidden rounded-full bg-chakra-500 text-sm font-bold text-snow">
+      {url && !broken ? (
+        <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setBroken(true)} className="h-full w-full object-cover" />
+      ) : (
+        label.trim().charAt(0).toUpperCase() || "U"
+      )}
+    </div>
+  );
+}
+
 export function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2.5">
@@ -82,9 +96,7 @@ export function Navbar() {
               <Link to="/pricing" className="hidden items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm sm:flex">
                 <Coins className="h-4 w-4 text-chakra-400" /> <b>{credits}</b>
               </Link>
-              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-chakra-500 font-bold text-snow">
-                {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : (user.name ?? user.email ?? "U")[0].toUpperCase()}
-              </div>
+              <Avatar url={user.avatarUrl} label={user.name || user.email || "U"} />
               <button type="button" onClick={signOut} className="hidden p-2 text-white/50 hover:text-white sm:block" aria-label="Sign out">
                 <LogOut className="h-4 w-4" />
               </button>

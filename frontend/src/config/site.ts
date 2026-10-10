@@ -416,29 +416,29 @@ export const PLANS: Plan[] = [
     id: "starter",
     name: "Starter",
     rank: 1,
-    credits: 420,
+    credits: 500,
     monthly: 24.99,
     yearly: 239.9,
-    perks: ["3 × 15s HD clips / month (≈ 46s 720p)", "All 7 modes", "No watermark", "Top up with credit packs"],
+    perks: ["~1 min of HD video every month", "All 7 modes", "No watermark", "Top up with credit packs"],
   },
   {
     id: "pro",
     name: "Pro",
     rank: 2,
-    credits: 1000,
-    monthly: 49.99,
-    yearly: 479.9,
+    credits: 1500,
+    monthly: 69.99,
+    yearly: 671.9,
     highlight: true,
-    perks: ["7 × 15s HD clips / month (≈ 1m50s 720p)", "1080p unlocked", "Priority queue", "Commercial use"],
+    perks: ["~3 min of HD video every month", "1080p unlocked", "Priority queue", "Commercial use"],
   },
   {
     id: "studio",
     name: "Studio",
     rank: 3,
-    credits: 2100,
-    monthly: 99.99,
-    yearly: 959.9,
-    perks: ["15 × 15s HD clips / month (≈ 3m50s 720p)", "1080p everywhere", "Fastest queue", "Commercial use"],
+    credits: 3000,
+    monthly: 129.99,
+    yearly: 1247.9,
+    perks: ["~5.5 min of HD video every month", "1080p everywhere", "Fastest queue", "Commercial use"],
   },
 ];
 
@@ -458,9 +458,9 @@ export interface CreditPack {
 
 /** 永久积分包，仅限有效订阅用户购买 */
 export const CREDIT_PACKS: CreditPack[] = [
-  { credits: 150, price: 11.99, lookup: "genjutsu_pack_150" },
-  { credits: 450, price: 32.99, lookup: "genjutsu_pack_450" },
-  { credits: 1000, price: 69.99, lookup: "genjutsu_pack_1000" },
+  { credits: 500, price: 34.99, lookup: "genjutsu_pack_500" },
+  { credits: 1500, price: 89.99, lookup: "genjutsu_pack_1500" },
+  { credits: 3000, price: 169.99, lookup: "genjutsu_pack_3000" },
 ];
 
 /** 注册赠送：够一条 5 秒 480p 体验视频（需通过设备指纹 / 邮箱风控） */

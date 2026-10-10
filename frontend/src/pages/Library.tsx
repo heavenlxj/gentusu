@@ -51,7 +51,7 @@ export default function Library() {
   );
 
   return (
-    <section className="mx-auto max-w-6xl px-4 pb-20 pt-24 sm:px-6 sm:pt-28">
+    <section className="mx-auto max-w-[1320px] px-4 pb-20 pt-24 sm:px-6 sm:pt-28">
       <Helmet>
         <title>My videos — {SITE.name}</title>
         <meta name="robots" content="noindex" />

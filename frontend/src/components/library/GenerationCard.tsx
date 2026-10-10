@@ -44,7 +44,7 @@ export function GenerationCard({ item, highlight, onPreview, onDownload, onShare
 
         {ready && (
           <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-chakra-500 text-white opacity-90 shadow-xl transition group-hover:scale-110">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-chakra-500 text-snow opacity-90 shadow-xl transition group-hover:scale-110">
               <Play className="ml-0.5 h-6 w-6 fill-current" />
             </span>
           </span>
@@ -114,9 +114,9 @@ function Thumbs({ urls, dim }: { urls?: string[]; dim: boolean }) {
 }
 
 const BADGES: Record<Generation["status"], { label: string; cls: string }> = {
-  processing: { label: "Rendering", cls: "bg-chakra-500 text-white" },
-  finalizing: { label: "Finishing", cls: "bg-chakra-500 text-white" },
-  succeeded: { label: "Ready", cls: "bg-emerald-500 text-ink-950" },
+  processing: { label: "Rendering", cls: "bg-chakra-500 text-snow" },
+  finalizing: { label: "Finishing", cls: "bg-chakra-500 text-snow" },
+  succeeded: { label: "Ready", cls: "bg-emerald-500 text-emerald-950" },
   failed: { label: "Failed · refunded", cls: "bg-red-500/90 text-white" },
 };
 

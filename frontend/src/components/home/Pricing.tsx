@@ -27,9 +27,9 @@ const RESOLUTIONS: [Resolution, string][] = [
   ["720p", "HD"],
   ["1080p", "Full HD"],
 ];
-/** 一条 15s 720p 视频的积分，用来把额度换算成「几条视频」 */
-const CLIP_SECONDS = 15;
-const FULL_720 = Math.ceil(creditsPerSecond("720p") * CLIP_SECONDS);
+/** 一条 5s 720p 视频的积分，用来把额度换算成「几条视频」 */
+const CLIP_SECONDS = 5;
+const CLIP_720 = Math.ceil(creditsPerSecond("720p") * CLIP_SECONDS);
 
 export function Pricing({ compact = false }: { compact?: boolean }) {
   const [interval, setBillingInterval] = useState<BillingInterval>("year");
@@ -83,7 +83,7 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
   };
 
   return (
-    <section id="pricing" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-28 sm:px-6">
+    <section id="pricing" className="mx-auto max-w-[1320px] scroll-mt-24 px-4 pt-28 sm:px-6">
       <p className="eyebrow text-center">Pricing</p>
       <h2 className="mt-3 text-center font-display text-4xl font-black sm:text-5xl">Pick your power level.</h2>
       <p className="mx-auto mt-4 max-w-xl text-center text-white/60">
@@ -119,7 +119,7 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
               key={i}
               type="button"
               onClick={() => setBillingInterval(i)}
-              className={cn("rounded-full px-5 py-2 transition", interval === i ? "bg-chakra-500 text-white" : "text-white/65 hover:text-white")}
+              className={cn("rounded-full px-5 py-2 transition", interval === i ? "bg-chakra-500 text-snow" : "text-white/65 hover:text-white")}
             >
               {i === "month" ? "Monthly" : "Yearly"}
               {i === "year" && <span className={cn("ml-2 text-xs", interval === i ? "text-white/75" : "text-chakra-300")}>−{YEARLY_DISCOUNT * 100}%</span>}
@@ -146,7 +146,7 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
               )}
             >
               {p.highlight && (
-                <span className="absolute -top-3 left-7 flex items-center gap-1 rounded-full bg-chakra-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                <span className="absolute -top-3 left-7 flex items-center gap-1 rounded-full bg-chakra-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-snow">
                   <Zap className="h-3 w-3" /> Most popular
                 </span>
               )}
@@ -165,7 +165,7 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
                 )}
               </p>
               <p className="mt-3 text-sm text-chakra-300">
-                {p.credits} credits every month · ~{usd(perMonth / Math.floor(p.credits / FULL_720))} per 15s HD clip
+                {p.credits.toLocaleString("en-US")} credits every month · up to {Math.floor(p.credits / CLIP_720)} HD clips
               </p>
               <ul className="mt-6 flex-1 space-y-3 text-sm">
                 {p.perks.map((perk) => (
@@ -228,10 +228,8 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
               )}
             >
               <span>
-                <span className="block font-display text-2xl">{pack.credits} credits</span>
-                <span className="text-xs text-white/50">
-                  ≈ {Math.floor(pack.credits / creditsPerSecond("720p"))}s of HD · never expire
-                </span>
+                <span className="block font-display text-2xl">{pack.credits.toLocaleString("en-US")} credits</span>
+                <span className="text-xs text-white/50">+{Math.floor(pack.credits / CLIP_720)} HD clips · never expire</span>
               </span>
               <span className="flex items-center gap-2 font-semibold">
                 {loading === pack.lookup ? <Loader2 className="h-4 w-4 animate-spin" /> : usd(pack.price)}

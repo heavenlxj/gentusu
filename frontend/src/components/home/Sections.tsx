@@ -7,14 +7,14 @@ import { cn } from "@/lib/cn";
 
 export function Showcase() {
   return (
-    <section id="showcase" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 pt-28 sm:px-6">
+    <section id="showcase" className="relative mx-auto max-w-[1320px] scroll-mt-24 px-4 pt-28 sm:px-6">
       <div className="pointer-events-none absolute inset-x-0 top-20 -z-10 mx-auto h-[520px] max-w-4xl rounded-full bg-chakra-500/20 blur-[140px]" />
       <div className="mb-12 text-center">
         <p className="eyebrow">Real renders · sound on</p>
         <h2 className="mt-3 font-display text-4xl font-black leading-[1.05] sm:text-6xl">
           {MODES.length} illusions.
           <br />
-          <span className="bg-gradient-to-r from-chakra-300 via-chakra-500 to-fuchsia-400 bg-clip-text text-transparent">Same take, new reality.</span>
+          <span className="bg-gradient-to-r from-chakra-300 via-chakra-500 to-spirit bg-clip-text text-transparent">Same take, new reality.</span>
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-white/55">
           Every clip below is untouched model output. Drag the handle to reveal the original, tap the speaker to hear it.
@@ -37,7 +37,7 @@ function ModeCard({ mode, index }: { mode: Mode; index: number }) {
 
   return (
     <article className="group relative">
-      <div className="absolute -inset-px rounded-[32px] bg-gradient-to-br from-chakra-500/50 via-white/5 to-fuchsia-500/40 opacity-40 blur-sm transition duration-500 group-hover:opacity-100" />
+      <div className="absolute -inset-px rounded-[32px] bg-gradient-to-br from-chakra-500/50 via-white/5 to-spirit/40 opacity-40 blur-sm transition duration-500 group-hover:opacity-100" />
       <div className="relative grid overflow-hidden rounded-[32px] border border-white/10 bg-ink-900 lg:grid-cols-[1.65fr_1fr]">
         <div className={cn("relative bg-black", flip && "lg:order-2")}>
           <CompareSlider
@@ -96,7 +96,7 @@ const PIPELINE = [
 
 export function HowItWorks() {
   return (
-    <section id="how" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-28 sm:px-6">
+    <section id="how" className="mx-auto max-w-[1320px] scroll-mt-24 px-4 pt-28 sm:px-6">
       <p className="eyebrow text-center">How it works</p>
       <h2 className="mt-3 text-center font-display text-3xl font-black sm:text-4xl">From footage to illusion in minutes</h2>
       <div className="relative mt-14 grid gap-4 md:grid-cols-4">
@@ -126,7 +126,7 @@ const USES = [
 
 export function UseCases() {
   return (
-    <section className="mx-auto max-w-6xl px-4 pt-28 sm:px-6">
+    <section className="mx-auto max-w-[1320px] px-4 pt-28 sm:px-6">
       <p className="eyebrow">Use cases</p>
       <h2 className="mt-3 max-w-2xl font-display text-3xl font-black sm:text-4xl">Built for people who ship video.</h2>
       <div className="mt-10 grid gap-px overflow-hidden rounded-[28px] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
@@ -189,7 +189,7 @@ const TRUST = [
 
 export function Responsible() {
   return (
-    <section id="responsible" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-28 sm:px-6">
+    <section id="responsible" className="mx-auto max-w-[1320px] scroll-mt-24 px-4 pt-28 sm:px-6">
       <div className="rounded-[28px] border border-white/10 bg-ink-900 p-8 sm:p-10">
         <p className="eyebrow">Responsible AI</p>
         <h2 className="mt-3 max-w-xl font-display text-3xl font-black sm:text-4xl">Powerful illusions need clear rules.</h2>
@@ -258,11 +258,11 @@ export function FAQ() {
 
 export function FinalCTA() {
   return (
-    <section className="mx-auto max-w-6xl px-4 pt-28 sm:px-6">
-      <div className="rounded-[28px] bg-chakra-500 px-6 py-14 text-center">
+    <section className="mx-auto max-w-[1320px] px-4 pt-28 sm:px-6">
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-chakra-700 via-chakra-500 to-[#1fb6d4] px-6 py-14 text-center text-snow shadow-chakra">
         <h2 className="font-display text-3xl font-black leading-tight sm:text-5xl">Cast the illusion.</h2>
-        <p className="mx-auto mt-4 max-w-md text-white/85">One photo, one clip, one click. Your first {FREE_TRIAL.seconds}s clip is on us.</p>
-        <a href="#studio" className="mt-7 inline-flex items-center gap-2 rounded-full bg-ink-950 px-7 py-3.5 font-semibold transition hover:bg-ink-800">
+        <p className="mx-auto mt-4 max-w-md text-snow/85">One photo, one clip, one click. Your first {FREE_TRIAL.seconds}s clip is on us.</p>
+        <a href="#studio" className="mt-7 inline-flex items-center gap-2 rounded-full bg-snow px-7 py-3.5 font-semibold text-[#0c0e20] transition hover:bg-snow/90">
           Open the studio
         </a>
       </div>

@@ -161,7 +161,7 @@ export function VideoDrop({ label, hint, value, duration, onChange, disabled, ex
           </>
         ) : (
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-chakra-500/15 text-chakra-400 transition group-hover:bg-chakra-500 group-hover:text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-chakra-500/15 text-chakra-400 transition group-hover:bg-chakra-500 group-hover:text-snow">
               <Film className="h-5 w-5" />
             </div>
             <p className="text-sm font-semibold">Drop a video</p>
@@ -249,7 +249,7 @@ export function ImageDrop({ label, hint, max, value, onChange, disabled }: Image
           >
             {single ? (
               <>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-chakra-500/15 text-chakra-400 transition group-hover:bg-chakra-500 group-hover:text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-chakra-500/15 text-chakra-400 transition group-hover:bg-chakra-500 group-hover:text-snow">
                   <ImagePlus className="h-5 w-5" />
                 </div>
                 <p className="text-sm font-semibold">Drop a photo</p>

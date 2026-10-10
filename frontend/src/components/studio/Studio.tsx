@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Check, Coins, LayoutGrid, Loader2, Play, Wand2 } from "lucide-react";
 import { MODES, CONFIG, FREE_TRIAL, billableSeconds, estimateCredits, getMode, type Mode, type ModeId } from "@/config/site";
@@ -9,7 +9,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { Segmented } from "@/components/ui/Segmented";
 import { ImageDrop, VideoDrop, nearestAspect, readVideoMeta } from "./MediaDrop";
 import { CompareSlider } from "./CompareSlider";
-import { TemplatePicker } from "./TemplatePicker";
+import { TemplateLauncher, TemplateModal } from "./TemplatePicker";
 import { cn } from "@/lib/cn";
 
 const defaultsOf = (id: ModeId) => Object.fromEntries(getMode(id).options.map((o) => [o.key, o.default]));
@@ -35,6 +35,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   const [preset, setPreset] = useState(0);
   const [options, setOptions] = useState<Record<string, string>>(defaultsOf(initialMode));
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
   const { phase, error, generate, reset } = useStudioGeneration();
   const { user, credits, billing, openAuth, spendDemoCredits, refreshCredits } = useAuth();
   const toast = useToast();
@@ -42,6 +43,12 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   const toPricing = () => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
 
   useEffect(() => setModeId(initialMode), [initialMode]);
+
+  useEffect(() => {
+    const strip = tabsRef.current;
+    const tab = strip?.querySelector<HTMLElement>('[data-active="true"]');
+    if (strip && tab) strip.scrollTo({ left: tab.offsetLeft - (strip.clientWidth - tab.clientWidth) / 2, behavior: "smooth" });
+  }, [modeId]);
 
   useEffect(() => {
     setOptions(defaultsOf(modeId));
@@ -157,10 +164,10 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
         <button
           type="button"
           disabled={busy}
-          onClick={() => setLibraryOpen((o) => !o)}
-          className="flex items-center gap-1 text-[11px] font-semibold text-chakra-300 hover:text-white"
+          onClick={() => setLibraryOpen(true)}
+          className="flex items-center gap-1.5 rounded-full border border-chakra-500/40 bg-chakra-500/15 px-3 py-1 text-xs font-semibold text-chakra-300 transition hover:bg-chakra-500 hover:text-snow"
         >
-          <LayoutGrid className="h-3.5 w-3.5" /> {libraryOpen ? "Hide templates" : "Browse templates"}
+          <LayoutGrid className="h-3.5 w-3.5" /> Templates
         </button>
       }
     />
@@ -168,7 +175,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   const sideBySide = mode.images.max === 1;
 
   return (
-    <section id="studio" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-24 sm:px-6 sm:pt-28">
+    <section id="studio" className="mx-auto max-w-[1600px] scroll-mt-20 px-3 pt-24 sm:px-5 sm:pt-28 lg:px-6">
       <div className="mb-6 flex flex-col gap-3 sm:mb-8 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-display text-3xl font-black leading-tight sm:text-5xl">{title}</h1>
@@ -176,33 +183,34 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
         </div>
       </div>
 
-      <div className="rounded-[28px] border border-chakra-500/25 bg-ink-900/90 p-3 shadow-chakra sm:p-4">
-        <div className="no-scrollbar grid auto-cols-[minmax(140px,1fr)] grid-flow-col gap-1.5 overflow-x-auto rounded-2xl bg-white/[0.03] p-1.5">
+      <div className="panel rounded-[28px] border border-chakra-500/25 bg-ink-900/90 p-2.5 shadow-chakra sm:p-4 lg:p-5">
+        <div ref={tabsRef} className="no-scrollbar relative grid auto-cols-[minmax(max-content,1fr)] grid-flow-col gap-1.5 overflow-x-auto rounded-2xl bg-white/[0.03] p-1.5">
           {MODES.map((m) => {
             const active = m.id === modeId;
             return (
               <button
                 key={m.id}
                 type="button"
+                data-active={active}
                 onClick={() => switchMode(m.id)}
                 className={cn(
                   "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition",
-                  active ? "bg-chakra-500 text-white" : "text-white/60 hover:bg-white/5 hover:text-white",
+                  active ? "bg-chakra-500 text-snow" : "text-white/60 hover:bg-white/5 hover:text-white",
                 )}
               >
-                <span className={cn("font-jp text-xl leading-none", active ? "text-white" : "text-chakra-400")}>{m.kanji}</span>
+                <span className={cn("font-jp text-xl leading-none", active ? "text-snow" : "text-chakra-400")}>{m.kanji}</span>
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold">{m.name}</span>
-                  <span className={cn("block truncate text-[11px]", active ? "text-white/75" : "text-white/40")}>{m.tagline}</span>
+                  <span className="block whitespace-nowrap text-sm font-semibold">{m.name}</span>
+                  <span className={cn("hidden whitespace-nowrap text-[11px] 2xl:block", active ? "text-snow/75" : "text-white/40")}>{m.tagline}</span>
                 </span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-          <div className="space-y-5 p-2 sm:p-3">
-            <p className="text-sm text-white/55">{mode.description}</p>
+        <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] xl:gap-8">
+          <div className="min-w-0 space-y-5 p-1 sm:p-2">
+            {mode.description !== subtitle && <p className="text-sm text-white/55">{mode.description}</p>}
 
             <button
               type="button"
@@ -235,7 +243,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
               )}
             </div>
 
-            {libraryOpen && <TemplatePicker modeId={mode.id} selected={video?.previewUrl} onPick={pickTemplate} />}
+            <TemplateLauncher modeId={mode.id} disabled={busy} onOpen={() => setLibraryOpen(true)} />
 
             {mode.presets && (
               <div>
@@ -281,7 +289,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
             )}
 
             {mode.options.length > 0 && (
-              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(mode.options.length, 3)}, minmax(0, 1fr))` }}>
+              <div className={cn("grid gap-x-4 gap-y-3", mode.options.length > 1 && "sm:grid-cols-2")}>
                 {mode.options.map((o) => (
                   <div key={o.key}>
                     <p className="mb-1.5 text-xs text-white/50">{o.label}</p>
@@ -338,6 +346,8 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
           />
         </div>
       </div>
+
+      {libraryOpen && <TemplateModal mode={mode} selected={video?.previewUrl} onPick={pickTemplate} onClose={() => setLibraryOpen(false)} />}
     </section>
   );
 }
@@ -362,7 +372,7 @@ function Canvas({ mode, phase, error, source, character, onReset }: CanvasProps)
   const ex = mode.example;
 
   return (
-    <div className="flex flex-col lg:sticky lg:top-24 lg:self-start">
+    <div className="order-first flex min-w-0 flex-col lg:order-none lg:sticky lg:top-24 lg:self-start">
       <div className="relative aspect-video overflow-hidden rounded-[20px] bg-black lg:aspect-[4/3.3]">
         {source ? (
           <video key={source} src={source} className="absolute inset-0 h-full w-full object-contain" autoPlay muted loop playsInline />
@@ -377,7 +387,7 @@ function Canvas({ mode, phase, error, source, character, onReset }: CanvasProps)
               soundId="studio-example"
               className="absolute inset-0 h-full w-full"
             />
-            <p className="pointer-events-none absolute bottom-3 left-3 right-44 rounded-xl bg-ink-950/70 px-3 py-2 text-xs text-white/75 backdrop-blur">
+            <p className="pointer-events-none absolute bottom-3 left-3 right-44 hidden rounded-xl sm:block bg-ink-950/70 px-3 py-2 text-xs text-white/75 backdrop-blur">
               <b className="text-white">Example ·</b> {ex.caption}. Drag the handle to compare.
             </p>
           </>

@@ -36,7 +36,7 @@ export function SoundButton({ on, onToggle, className }: { on: boolean; onToggle
       title={on ? "Mute" : "Sound on"}
       className={cn(
         "z-20 flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold backdrop-blur transition",
-        on ? "bg-white text-ink-950" : "bg-ink-950/70 text-white/90 hover:bg-ink-950/90",
+        on ? "bg-snow text-[#0c0e20]" : "bg-black/60 text-snow/90 hover:bg-black/80",
         className,
       )}
     >

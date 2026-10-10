@@ -29,7 +29,7 @@ export function Segmented<T extends string | number>({ value, options, onChange,
             onClick={() => onChange(o.value)}
             className={cn(
               "relative flex flex-col items-center justify-center rounded-xl px-2 py-2 text-sm font-semibold transition",
-              active ? "bg-chakra-500 text-ink-950 shadow-[0_6px_24px_-6px_rgba(255,31,75,.8)]" : "text-white/70 hover:bg-white/5 hover:text-white",
+              active ? "bg-chakra-500 text-snow shadow-[0_6px_24px_-8px_rgb(var(--chakra-500)/.75)]" : "text-white/70 hover:bg-white/5 hover:text-white",
               (disabled || o.disabled) && "cursor-not-allowed opacity-35 hover:bg-transparent",
             )}
           >
@@ -37,7 +37,7 @@ export function Segmented<T extends string | number>({ value, options, onChange,
               {o.label}
               {o.locked && <Lock className="h-3 w-3 opacity-70" />}
             </span>
-            {o.sub && <span className={cn("text-[10px] font-medium", active ? "text-ink-950/70" : "text-white/40")}>{o.sub}</span>}
+            {o.sub && <span className={cn("text-[10px] font-medium", active ? "text-snow/75" : "text-white/45")}>{o.sub}</span>}
           </button>
         );
       })}

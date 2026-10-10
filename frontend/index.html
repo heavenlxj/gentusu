@@ -8,7 +8,16 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#05040a" />
+    <meta name="theme-color" content="#070812" />
+    <script>
+      try {
+        var t = localStorage.getItem("genjutsu-theme");
+        if (t === "light" || (!t && matchMedia("(prefers-color-scheme: light)").matches)) {
+          document.documentElement.classList.add("light");
+          document.querySelector('meta[name="theme-color"]').setAttribute("content", "#f5f6fb");
+        }
+      } catch (e) {}
+    </script>
     <title>Genjutsu AI — Motion Transfer, Character Swap & Video Restyle</title>
     <meta
       name="description"

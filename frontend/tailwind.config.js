@@ -1,25 +1,30 @@
 /** @type {import('tailwindcss').Config} */
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
+        // 颜色走 CSS 变量（index.css），深色 / 浅色主题共用同一套类名；white 即前景色
+        white: v("fg"),
+        snow: "#ffffff",
         ink: {
-          950: "#05040a",
-          900: "#0a0812",
-          800: "#120f1d",
-          700: "#1b1729",
-          600: "#272138",
+          950: v("ink-950"),
+          900: v("ink-900"),
+          800: v("ink-800"),
+          700: v("ink-700"),
+          600: v("ink-600"),
         },
         chakra: {
-          200: "#ffc2cd",
-          300: "#ff8fa3",
-          400: "#ff4d6d",
-          500: "#ff1f4b",
-          600: "#e0003a",
-          700: "#a3002a",
+          200: v("chakra-200"),
+          300: v("chakra-300"),
+          400: v("chakra-400"),
+          500: v("chakra-500"),
+          600: v("chakra-600"),
+          700: v("chakra-700"),
         },
-        spirit: "#7cf7ff",
+        spirit: v("spirit"),
       },
       fontFamily: {
         display: ['"Unbounded"', "system-ui", "sans-serif"],
@@ -28,8 +33,8 @@ export default {
         jp: ['"Noto Serif JP"', "serif"],
       },
       boxShadow: {
-        chakra: "0 40px 100px -40px rgba(255,31,75,.4)",
-        glow: "0 0 40px rgba(255,31,75,.55)",
+        chakra: "0 40px 100px -40px rgb(var(--chakra-500) / .35)",
+        glow: "0 0 32px rgb(var(--chakra-500) / .5)",
       },
       keyframes: {
         spin3: { to: { transform: "rotate(360deg)" } },

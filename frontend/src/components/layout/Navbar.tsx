@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ChevronDown, Clapperboard, Coins, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, Clapperboard, Coins, LogOut, Menu, Moon, Sun, X } from "lucide-react";
 import { CONFIG, MODES, SITE } from "@/config/site";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { cn } from "@/lib/cn";
+import { useTheme } from "@/lib/theme";
 
 export function Logo() {
   return (
@@ -24,6 +25,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const { user, credits, openAuth, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -34,7 +36,7 @@ export function Navbar() {
 
   return (
     <header className={cn("fixed inset-x-0 top-0 z-50 transition", scrolled ? "border-b border-white/5 bg-ink-950/80 backdrop-blur-xl" : "")}>
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+      <nav className="mx-auto flex h-16 max-w-[1600px] items-center justify-between px-3 sm:px-5 lg:px-6">
         <div className="flex items-center gap-3">
           <Logo />
           {CONFIG.demoMode && (
@@ -80,7 +82,7 @@ export function Navbar() {
               <Link to="/pricing" className="hidden items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm sm:flex">
                 <Coins className="h-4 w-4 text-chakra-400" /> <b>{credits}</b>
               </Link>
-              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-chakra-500 font-bold">
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-chakra-500 font-bold text-snow">
                 {user.avatarUrl ? <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" /> : (user.name ?? user.email ?? "U")[0].toUpperCase()}
               </div>
               <button type="button" onClick={signOut} className="hidden p-2 text-white/50 hover:text-white sm:block" aria-label="Sign out">
@@ -90,14 +92,23 @@ export function Navbar() {
           ) : (
             <button type="button" onClick={openAuth} className="btn-ghost hidden py-2 text-sm sm:inline-flex">Sign in</button>
           )}
-          <a href="/#studio" className="btn-primary hidden py-2 text-sm sm:inline-flex">Open studio</a>
+          <a href="/#studio" className="btn-primary hidden py-2 text-sm lg:inline-flex">Open studio</a>
+          <button
+            type="button"
+            onClick={toggle}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/70 transition hover:border-white/30 hover:text-white"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           <button type="button" className="p-2 md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </nav>
       {open && (
-        <div className="border-t border-white/5 bg-ink-950/95 px-4 py-4 backdrop-blur-xl md:hidden">
+        <div className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-white/5 bg-ink-950/95 px-4 py-4 backdrop-blur-xl md:hidden">
           {MODES.map((m) => (
             <Link key={m.id} to={`/${m.id}`} onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-white/80 hover:bg-white/5">
               <span className="font-jp text-chakra-400">{m.kanji}</span> {m.name}
@@ -105,8 +116,19 @@ export function Navbar() {
           ))}
           <Link to="/pricing" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-white/80 hover:bg-white/5">Pricing</Link>
           {user && (
-            <Link to="/library" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-white/80 hover:bg-white/5">My videos</Link>
+            <>
+              <Link to="/library" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-white/80 hover:bg-white/5">My videos</Link>
+              <div className="mt-2 flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm">
+                <span className="flex items-center gap-1.5">
+                  <Coins className="h-4 w-4 text-chakra-400" /> <b>{credits}</b> <span className="text-white/50">credits</span>
+                </span>
+                <button type="button" onClick={() => { setOpen(false); signOut(); }} className="flex items-center gap-1.5 text-white/60 hover:text-white">
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
+              </div>
+            </>
           )}
+          <a href="/#studio" onClick={() => setOpen(false)} className="btn-primary mt-3 w-full">Open studio</a>
           {!user && (
             <button type="button" onClick={() => { setOpen(false); openAuth(); }} className="btn-primary mt-3 w-full">Sign in</button>
           )}

@@ -32,11 +32,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               className={cn(
                 "pointer-events-auto flex animate-rise items-center gap-2 rounded-full border px-4 py-2.5 text-sm shadow-2xl backdrop-blur-md",
                 t.kind === "error" && "border-red-500/40 bg-red-950/80 text-red-100",
-                t.kind === "success" && "border-spirit/40 bg-ink-800/90 text-white",
+                t.kind === "success" && "border-chakra-500/40 bg-ink-800/90 text-white",
                 t.kind === "info" && "border-white/15 bg-ink-800/90 text-white",
               )}
             >
-              <Icon className={cn("h-4 w-4", t.kind === "success" && "text-spirit", t.kind === "info" && "text-chakra-400")} />
+              <Icon className={cn("h-4 w-4", t.kind === "success" && "text-chakra-400", t.kind === "info" && "text-chakra-400")} />
               {t.message}
             </div>
           );

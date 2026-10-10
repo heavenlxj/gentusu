@@ -12,39 +12,49 @@ export const CONFIG = {
   apiBaseUrl: (env.VITE_API_BASE_URL as string | undefined) ?? "https://api.kinkora.fun",
   supabaseUrl: (env.VITE_SUPABASE_URL as string | undefined) ?? "",
   supabaseAnonKey: (env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? "",
-  showcaseVideoUrl: (env.VITE_SHOWCASE_VIDEO_URL as string | undefined) ?? "",
 };
 
-const CDN = "https://storage.conut.ai/public_assets/conut_apps";
+/** 1 站点积分 = 10 kinkora coins；扣费与余额都以 kinkora coins 为准 */
+export const COINS_PER_CREDIT = 10;
 
-export const HERO_DEMO = {
-  source: `${CDN}/motion_control_std/input.mp4`,
-  result: `${CDN}/motion_control_std/output.mp4`,
-  character: `${CDN}/motion_control_std/input.webp`,
-};
+/** demo / 模板素材都在 R2，不随代码提交 */
+const ASSETS = ((env.VITE_ASSETS_BASE_URL as string | undefined) || "https://storage.genjutsusi.app").replace(/\/$/, "");
+const D = `${ASSETS}/demo`;
 
-const PRESET_BASE = `${CDN}/motion_control_presets`;
-const PRESET_IDS = [
-  "062dcd0d-2b81-4e82-8757-8bb1cd491581",
-  "1ad056fe-79aa-4347-afdc-2b4e360fbed1",
-  "1c1ad507-fd7e-45eb-8f20-5436d3e3f238",
-  "1c4f77b2-0eb4-481a-b415-1765aaf4f866",
-  "1f72d445-36d9-4df6-90e2-b09c299b9de9",
-  "22287793-7664-4802-b0a3-ba8c0f65f994",
-  "23dd378e-e15a-4bf8-9d53-f2ecd5641e9d",
-  "289b7f9f-27be-4457-b767-62e4a6aa8b71",
-  "459929b4-b2a9-467b-80d2-ab5939cb2654",
-  "45d2f4ad-e6db-44d2-81a9-5187ac245eae",
-  "46e7c5cb-1791-4419-bb79-da0cf0fabf96",
-  "53241da3-ea51-4303-a52c-16cfba8aa94e",
+export const MOTION_LIBRARY = [
+  { id: "karate", name: "Dojo fight", url: `${D}/mt-before.mp4`, poster: `${D}/mt-before.jpg` },
+  { id: "dance", name: "Loft dance", url: `${D}/cs-before.mp4`, poster: `${D}/cs-before.jpg` },
+  { id: "group", name: "Group routine", url: `${D}/group-before.mp4`, poster: `${D}/group-before.jpg` },
+  { id: "walk", name: "Gallery run", url: `${D}/hall-before.mp4`, poster: `${D}/hall-before.jpg` },
+  { id: "skate", name: "Snow skate", url: `${D}/snow-before.mp4`, poster: `${D}/snow-before.jpg` },
+  { id: "skydive", name: "Skydive", url: `${D}/skydive.mp4`, poster: `${D}/skydive.jpg` },
 ];
-export const MOTION_LIBRARY = PRESET_IDS.map((id, i) => ({
-  id,
-  name: `Move ${String(i + 1).padStart(2, "0")}`,
-  url: `${PRESET_BASE}/${id}.mp4`,
-}));
 
-export type ModeId = "motion-transfer" | "character-swap" | "object-swap" | "restyle" | "face-swap";
+export interface ModeExample {
+  before: string;
+  after: string;
+  poster: string;
+  beforePoster: string;
+  images: string[];
+  prompt?: string;
+  preset?: number;
+  caption: string;
+  /** CSS aspect-ratio of the demo footage */
+  aspect: string;
+}
+
+const example = (key: string, caption: string, extra: Partial<ModeExample> = {}, source = key): ModeExample => ({
+  before: `${D}/${source}-before.mp4`,
+  after: `${D}/${key}-after.mp4`,
+  poster: `${D}/${key}-after.jpg`,
+  beforePoster: `${D}/${source}-before.jpg`,
+  images: [],
+  caption,
+  aspect: "16 / 9",
+  ...extra,
+});
+
+export type ModeId = "motion-transfer" | "character-swap" | "outfit-swap" | "object-swap" | "background-swap" | "restyle" | "face-swap";
 
 export interface ModeChoice {
   value: string;
@@ -64,6 +74,8 @@ export interface ModeInput {
   images: string[];
   prompt: string;
   options: Record<string, string>;
+  /** 源视频秒数（已截断到 maxSeconds） */
+  seconds: number;
 }
 
 export interface Mode {
@@ -75,29 +87,87 @@ export interface Mode {
   seoTitle: string;
   seoDescription: string;
   providerId: string;
-  resolveModel: (options: Record<string, string>) => string;
-  video: { label: string; hint: string; library?: boolean };
+  modelId: string;
+  video: { label: string; hint: string };
   images: { label: string; hint: string; min: number; max: number };
   prompt?: { label: string; placeholder: string; required?: boolean };
   presets?: { label: string; prompt: string }[];
   options: ModeOption[];
-  /** 对外展示的 credits 单价，真实扣费以 kinkora 定价为准 */
-  creditsPerSecond: (options: Record<string, string>) => number;
   minSeconds: number;
-  maxSeconds: (options: Record<string, string>) => number;
+  maxSeconds: number;
   etaSeconds: number;
-  cover: string;
-  demoResult?: string;
+  example: ModeExample;
   buildParams: (input: ModeInput) => Record<string, unknown>;
 }
 
+const PROVIDER = "ai-provider-2";
+const EDIT_MODEL = "studio/wan-3.0/video-edit";
+const REF_MODEL = "studio/wan-3.0/reference-to-video";
+
+export type Resolution = "480p" | "720p" | "1080p";
+
+/** kinkora coins/s：video-edit 按输入秒 × 2（输入 + 输出），ref2v 按 (参考秒 + 输出秒) */
+const COINS_PER_SOURCE_SECOND: Record<Resolution, number> = { "480p": 46, "720p": 90, "1080p": 180 };
+
+const RESOLUTION_OPTION: ModeOption = {
+  key: "resolution",
+  label: "Quality",
+  default: "480p",
+  choices: [
+    { value: "480p", label: "480p", sub: "Fast" },
+    { value: "720p", label: "720p", sub: "HD" },
+    { value: "1080p", label: "1080p", sub: "Full HD" },
+  ],
+};
+
+const SOUND_OPTION: ModeOption = {
+  key: "sound",
+  label: "Sound",
+  default: "ai",
+  choices: [
+    { value: "ai", label: "AI sound", sub: "Matches the edit" },
+    { value: "keep", label: "Original", sub: "Keep source audio" },
+  ],
+};
+
+const MOTION_SOUND_OPTION: ModeOption = {
+  key: "sound",
+  label: "Sound",
+  default: "ai",
+  choices: [
+    { value: "ai", label: "AI sound" },
+    { value: "mute", label: "Silent" },
+  ],
+};
+
+const KEEP_REST = "Keep everything else exactly as it is: faces, hands, motion, camera path, timing, lighting and the rest of the scene.";
+const NO_CUTOUT = "Edges blend naturally with the scene, no cutout artifacts.";
+
+const join = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).join(" ");
+
+const editParams = (prompt: string, { video, images, options }: ModeInput) => ({
+  prompt,
+  video,
+  reference_images: images,
+  resolution: options.resolution,
+  generate_audio: options.sound !== "keep",
+});
+
 const STYLE_PRESETS = [
-  { label: "Anime", prompt: "hand-drawn 2D anime, clean line art, cel shading, vivid colors" },
-  { label: "Claymation", prompt: "stop-motion claymation, plasticine textures, soft studio light" },
-  { label: "Cyberpunk", prompt: "neon cyberpunk city at night, rain reflections, magenta and cyan lights" },
-  { label: "Live-action", prompt: "photorealistic live-action film, natural skin, 35mm cinematic lighting" },
-  { label: "Ink wash", prompt: "Japanese sumi-e ink wash painting, paper texture, minimal palette" },
-  { label: "3D toon", prompt: "glossy 3D animated feature film style, soft global illumination" },
+  { label: "90s anime", prompt: "1990s hand-drawn cel animation: flat bold colors, clean black ink outlines, painted backgrounds, anime faces with large eyes" },
+  { label: "Claymation", prompt: "stop-motion claymation: plasticine textures, fingerprints in the clay, soft studio light" },
+  { label: "Cyberpunk", prompt: "a neon cyberpunk film: rain, wet reflections, magenta and cyan lights" },
+  { label: "Toy city", prompt: "a colorful toy-brick world: glossy plastic blocks, tilt-shift miniature look" },
+  { label: "3D toon", prompt: "a glossy 3D animated feature film: soft global illumination, expressive stylized characters" },
+  { label: "Ink wash", prompt: "a Japanese sumi-e ink wash painting: paper texture, minimal palette, brush strokes" },
+  { label: "Live-action", prompt: "a photorealistic live-action film: natural skin, 35mm cinematic lighting" },
+];
+
+const BACKGROUND_PRESETS = [
+  { label: "Neon Tokyo", prompt: "a neon-lit Tokyo street at night with wet reflective pavement" },
+  { label: "Mars", prompt: "the red dusty surface of Mars under a pale sky" },
+  { label: "Beach sunset", prompt: "a tropical beach at golden-hour sunset" },
+  { label: "Snowy forest", prompt: "a quiet snowy pine forest with falling snow" },
 ];
 
 export const MODES: Mode[] = [
@@ -106,32 +176,33 @@ export const MODES: Mode[] = [
     name: "Motion Transfer",
     kanji: "転",
     tagline: "Make anyone move",
-    description: "Upload one character photo and a motion clip. Every step, spin and hand gesture is transferred while face, outfit and style stay locked.",
+    description: "Upload one character photo and a motion clip. Every kick, spin and hand gesture is transferred while face, outfit and style stay locked.",
     seoTitle: "AI Motion Transfer — Make Any Photo Dance",
-    seoDescription: "Transfer dance moves, actions and gestures from any reference video onto a character photo. Photoreal, 3D and anime supported.",
-    providerId: "wavespeed",
-    resolveModel: (o) => (o.quality === "pro" ? "kwaivgi/kling-v2.6-pro/motion-control" : "kwaivgi/kling-v2.6-std/motion-control"),
-    video: { label: "Motion clip", hint: "3–30s · one performer · steady camera", library: true },
+    seoDescription: "Transfer dance moves, fights and gestures from any reference video onto a character photo. Photoreal, 3D and anime supported.",
+    providerId: PROVIDER,
+    modelId: REF_MODEL,
+    video: { label: "Motion clip", hint: "2–15s · steady camera" },
     images: { label: "Character", hint: "Full body, clear pose", min: 1, max: 1 },
     prompt: { label: "Scene direction", placeholder: "Optional — e.g. neon rooftop at night, light rain" },
-    options: [
-      { key: "quality", label: "Quality", default: "std", choices: [{ value: "std", label: "Standard" }, { value: "pro", label: "Pro", sub: "Sharper" }] },
-      { key: "orientation", label: "Follow", default: "video", choices: [{ value: "video", label: "Video", sub: "≤30s" }, { value: "image", label: "Photo", sub: "≤10s" }] },
-      { key: "sound", label: "Audio", default: "keep", choices: [{ value: "keep", label: "Keep" }, { value: "mute", label: "Mute" }] },
-    ],
-    creditsPerSecond: (o) => (o.quality === "pro" ? 6 : 4),
-    minSeconds: 3,
-    maxSeconds: (o) => (o.orientation === "image" ? 10 : 30),
-    etaSeconds: 180,
-    cover: `${CDN}/motion_control_std/cover.mp4`,
-    demoResult: `${CDN}/motion_control_std/output.mp4`,
-    buildParams: ({ video, images, prompt, options }) => ({
-      image: images[0],
-      video,
-      character_orientation: options.orientation,
-      keep_original_sound: options.sound === "keep",
-      prompt,
-      negative_prompt: "",
+    options: [RESOLUTION_OPTION, MOTION_SOUND_OPTION],
+    minSeconds: 2,
+    maxSeconds: 15,
+    etaSeconds: 600,
+    example: example("mt", "Original fight clip + one character photo", { images: [`${D}/mt-character.jpg`] }),
+    buildParams: ({ video, images, prompt, options, seconds }) => ({
+      prompt: join(
+        "The motion, positions, timing and camera come only from Video 1.",
+        "The character performing it is the character in Image 1: same face, hair, outfit and art style as Image 1.",
+        prompt ? `Scene: ${prompt}.` : "Keep the setting of Video 1.",
+        "No captions.",
+      ),
+      reference_images: images,
+      reference_videos: [video],
+      reference_video_seconds: seconds,
+      duration: Math.max(2, Math.ceil(seconds)),
+      aspect_ratio: options.aspect ?? "16:9",
+      resolution: options.resolution,
+      generate_audio: options.sound !== "mute",
     }),
   },
   {
@@ -142,87 +213,143 @@ export const MODES: Mode[] = [
     description: "Replace the person in your clip with anyone from a single photo. Background, camera move, lighting and timing stay exactly as filmed.",
     seoTitle: "AI Character Swap — Replace Anyone in a Video",
     seoDescription: "Swap the whole performer in any video from one photo while keeping the original background, camera and lighting.",
-    providerId: "ai-provider-2",
-    resolveModel: () => "wavespeed-ai/wan-2.2/animate",
-    video: { label: "Source video", hint: "4–30s · the person you want to replace" },
-    images: { label: "New character", hint: "Full body, plain background works best", min: 1, max: 1 },
-    prompt: { label: "Guidance", placeholder: "Optional — e.g. preserve outfit, natural expression" },
-    options: [
-      { key: "resolution", label: "Resolution", default: "480p", choices: [{ value: "480p", label: "480p" }, { value: "720p", label: "720p" }] },
+    providerId: PROVIDER,
+    modelId: EDIT_MODEL,
+    video: { label: "Source video", hint: "2–15s · the person you want to replace" },
+    images: { label: "New character", hint: "Face clearly visible, full body is best", min: 1, max: 1 },
+    prompt: { label: "Guidance", placeholder: "Optional — e.g. keep the original outfit" },
+    options: [RESOLUTION_OPTION, SOUND_OPTION],
+    minSeconds: 2,
+    maxSeconds: 15,
+    etaSeconds: 600,
+    example: example("cs", "Dancer recast from one photo", { images: [`${D}/cs-character.jpg`], aspect: "4 / 3" }),
+    buildParams: (input) =>
+      editParams(
+        join(
+          "Edit the video: seamlessly replace the main person in Video 1 with the person from Image 1 — face, hair, body and outfit come only from Image 1.",
+          "They perform exactly the same movements, poses and timing.",
+          input.prompt,
+          "Keep the background, lighting and camera movement unchanged.",
+          NO_CUTOUT,
+        ),
+        input,
+      ),
+  },
+  {
+    id: "outfit-swap",
+    name: "Outfit Swap",
+    kanji: "装",
+    tagline: "Re-dress any take",
+    description: "Describe a costume or drop a product shot — the clothes change, while the face, moves and scene stay exactly as filmed.",
+    seoTitle: "AI Outfit Swap — Change Clothes in Any Video",
+    seoDescription: "Change what someone is wearing in a video from a text prompt or a product photo. Face, motion and camera stay identical.",
+    providerId: PROVIDER,
+    modelId: EDIT_MODEL,
+    video: { label: "Source video", hint: "2–15s · person clearly visible" },
+    images: { label: "Outfit reference", hint: "Optional · product or look photo", min: 0, max: 2 },
+    prompt: { label: "New outfit", placeholder: "e.g. a full-body yellow banana costume", required: true },
+    presets: [
+      { label: "Banana suit", prompt: "a full-body yellow banana costume that covers the torso and arms, face stays visible" },
+      { label: "Samurai armor", prompt: "black and red lacquered samurai armor" },
+      { label: "Tuxedo", prompt: "a sharp black tuxedo with a bow tie" },
+      { label: "From photo", prompt: "the outfit shown in Image 1" },
     ],
-    creditsPerSecond: (o) => (o.resolution === "720p" ? 6 : 3),
-    minSeconds: 4,
-    maxSeconds: () => 30,
-    etaSeconds: 240,
-    cover: `${CDN}/motion_control_pro/output.mp4`,
-    demoResult: `${CDN}/motion_control_pro/output.mp4`,
-    buildParams: ({ video, images, prompt, options }) => ({
-      image: images[0],
-      video,
-      mode: "replace",
-      resolution: options.resolution,
-      prompt,
+    options: [RESOLUTION_OPTION, SOUND_OPTION],
+    minSeconds: 2,
+    maxSeconds: 15,
+    etaSeconds: 600,
+    example: example("os", "Only the outfit changes — the whole scene stays", {
+      prompt: "a full-body yellow banana costume that covers the torso and arms, face stays visible",
     }),
+    buildParams: (input) =>
+      editParams(join(`Edit the video: the person in Video 1 now wears ${input.prompt}.`, "Their face, hair, hands, motion and the camera remain unchanged.", KEEP_REST), input),
   },
   {
     id: "object-swap",
     name: "Object Swap",
     kanji: "換",
     tagline: "Change one thing",
-    description: "Point at a product, prop, outfit or location and say what it should become. Everything else in the shot stays untouched.",
+    description: "Point at a product or prop and say what it should become. Hands interact with the new object; everything else stays untouched.",
     seoTitle: "AI Object Swap — Replace Products & Props in Video",
-    seoDescription: "Replace a product, outfit, prop or location in existing footage with a reference image and a short instruction.",
-    providerId: "ai-provider-2",
-    resolveModel: () => "kwaivgi/kling-video-o3-pro/video-edit",
-    video: { label: "Source video", hint: "3–10s works best" },
-    images: { label: "References", hint: "Up to 4 · product, outfit, prop", min: 0, max: 4 },
-    prompt: { label: "What changes?", placeholder: "e.g. Replace the soda can with the bottle from the reference", required: true },
+    seoDescription: "Replace a product or prop in existing footage with a reference image and a short instruction.",
+    providerId: PROVIDER,
+    modelId: EDIT_MODEL,
+    video: { label: "Source video", hint: "2–15s works best" },
+    images: { label: "References", hint: "Optional · up to 3 product shots", min: 0, max: 3 },
+    prompt: { label: "What changes?", placeholder: "e.g. Replace the laptop with a vintage typewriter", required: true },
     presets: [
-      { label: "Swap product", prompt: "Replace the product in the hand with the product from the reference image, matching lighting and reflections." },
-      { label: "New outfit", prompt: "Change the person's outfit to the outfit from the reference image. Keep face, pose and movement identical." },
-      { label: "New location", prompt: "Move the scene to the location from the reference image while keeping the person and motion identical." },
+      { label: "Swap product", prompt: "Replace the product in the hand with the product from Image 1, matching lighting and reflections." },
+      { label: "Retro tech", prompt: "Replace the laptop with a cream-colored vintage mechanical typewriter of similar size, fingers typing on its keys." },
     ],
-    options: [{ key: "sound", label: "Audio", default: "keep", choices: [{ value: "keep", label: "Keep" }, { value: "mute", label: "Mute" }] }],
-    creditsPerSecond: () => 20,
-    minSeconds: 3,
-    maxSeconds: () => 10,
-    etaSeconds: 240,
-    cover: `${CDN}/video_editor/cover.mp4`,
-    demoResult: `${CDN}/video_editor/cover.mp4`,
-    buildParams: ({ video, images, prompt, options }) => ({
-      video,
-      images,
-      prompt,
-      keep_original_sound: options.sound === "keep",
-    }),
+    options: [RESOLUTION_OPTION, SOUND_OPTION],
+    minSeconds: 2,
+    maxSeconds: 15,
+    etaSeconds: 600,
+    example: example(
+      "obj",
+      "Laptop becomes a vintage typewriter",
+      { prompt: "Replace the laptop with a cream-colored vintage mechanical typewriter of similar size, fingers typing on its keys." },
+      "os",
+    ),
+    buildParams: (input) => editParams(join(`Edit the video: ${input.prompt}`, KEEP_REST), input),
+  },
+  {
+    id: "background-swap",
+    name: "Background Swap",
+    kanji: "景",
+    tagline: "Teleport the scene",
+    description: "Keep the performer, move the world. Light, reflections and shadows from the new location wrap around them in every frame.",
+    seoTitle: "AI Background Swap — Change Any Video Location",
+    seoDescription: "Move any clip to a new location: neon streets, Mars, beaches. The person, motion and camera stay exactly the same.",
+    providerId: PROVIDER,
+    modelId: EDIT_MODEL,
+    video: { label: "Source video", hint: "2–15s · any footage" },
+    images: { label: "Location reference", hint: "Optional · a photo of the place", min: 0, max: 1 },
+    prompt: { label: "New location", placeholder: "e.g. a neon-lit Tokyo street at night", required: true },
+    presets: BACKGROUND_PRESETS,
+    options: [RESOLUTION_OPTION, SOUND_OPTION],
+    minSeconds: 2,
+    maxSeconds: 15,
+    etaSeconds: 600,
+    example: example("hall", "Palace gallery to neon Tokyo", { prompt: BACKGROUND_PRESETS[0].prompt }),
+    buildParams: (input) =>
+      editParams(
+        join(
+          `Edit the video: change the location in Video 1 to ${input.prompt}.`,
+          "The people, their outfits, their motion and the camera path stay exactly the same.",
+          "They receive the light of the new scene.",
+          NO_CUTOUT,
+        ),
+        input,
+      ),
   },
   {
     id: "restyle",
     name: "Restyle",
     kanji: "彩",
     tagline: "Same take, new reality",
-    description: "Turn live-action into anime, anime into live-action, or a phone clip into a polished commercial — motion, timing and camera stay in sync.",
+    description: "Turn live-action into anime, anime into live-action, or a phone clip into claymation — motion, timing and camera stay in sync.",
     seoTitle: "AI Video Restyle — Anime to Live-Action & Back",
     seoDescription: "Restyle any video into anime, claymation, cyberpunk or live-action while preserving the original motion and camera.",
-    providerId: "ai-provider-2",
-    resolveModel: () => "kwaivgi/kling-video-o3-pro/video-edit",
-    video: { label: "Source video", hint: "3–10s · any footage" },
-    images: { label: "Style reference", hint: "Optional · up to 4 frames", min: 0, max: 4 },
+    providerId: PROVIDER,
+    modelId: EDIT_MODEL,
+    video: { label: "Source video", hint: "2–15s · any footage" },
+    images: { label: "Style reference", hint: "Optional · up to 2 frames", min: 0, max: 2 },
     prompt: { label: "Extra direction", placeholder: "Optional — e.g. golden hour, keep the red jacket" },
     presets: STYLE_PRESETS,
-    options: [{ key: "sound", label: "Audio", default: "keep", choices: [{ value: "keep", label: "Keep" }, { value: "mute", label: "Mute" }] }],
-    creditsPerSecond: () => 20,
-    minSeconds: 3,
-    maxSeconds: () => 10,
-    etaSeconds: 240,
-    cover: `${CDN}/video_editor/cover.mp4`,
-    demoResult: `${CDN}/video_editor/cover.mp4`,
-    buildParams: ({ video, images, prompt, options }) => ({
-      video,
-      images,
-      prompt: `Restyle the entire video as ${prompt}. Keep every movement, camera move, timing and composition identical to the original.`,
-      keep_original_sound: options.sound === "keep",
-    }),
+    options: [RESOLUTION_OPTION, SOUND_OPTION],
+    minSeconds: 2,
+    maxSeconds: 15,
+    etaSeconds: 600,
+    example: example("snow", "Snow skater turned 90s anime", { preset: 0 }),
+    buildParams: (input) =>
+      editParams(
+        join(
+          `Edit the video: convert the entire scene of Video 1 into ${input.prompt}.`,
+          "Keep the same characters, outfits, motion, timing and camera path in every frame.",
+        ),
+        input,
+      ),
   },
   {
     id: "face-swap",
@@ -232,68 +359,109 @@ export const MODES: Mode[] = [
     description: "Replace a face in any clip while keeping expressions, lip movement and head turns. Skin tone and lighting are re-blended per frame.",
     seoTitle: "AI Video Face Swap — Swap Faces in Any Clip",
     seoDescription: "Swap a face in any video with a single portrait. Expressions, blinks and lip sync are preserved frame by frame.",
-    providerId: "wavespeed",
-    resolveModel: () => "wavespeed-ai/video-face-swap",
-    video: { label: "Target video", hint: "Up to 10 min · faces clearly visible" },
+    providerId: PROVIDER,
+    modelId: EDIT_MODEL,
+    video: { label: "Target video", hint: "2–15s · face clearly visible" },
     images: { label: "New face", hint: "Front-facing portrait, good light", min: 1, max: 1 },
-    options: [
-      { key: "target", label: "Which face", default: "0", choices: [{ value: "0", label: "1st" }, { value: "1", label: "2nd" }, { value: "2", label: "3rd" }] },
-    ],
-    creditsPerSecond: () => 1,
-    minSeconds: 5,
-    maxSeconds: () => 600,
-    etaSeconds: 120,
-    cover: `${CDN}/swap/video_face_swap/cover.mp4`,
-    demoResult: `${CDN}/swap/video_face_swap/cover.mp4`,
-    buildParams: ({ video, images, options }) => ({
-      video,
-      face_image: images[0],
-      target_index: Number(options.target),
-    }),
+    options: [RESOLUTION_OPTION, SOUND_OPTION],
+    minSeconds: 2,
+    maxSeconds: 15,
+    etaSeconds: 600,
+    example: example("fs", "Same shot, a different person", { images: [`${D}/fs-face.jpg`] }),
+    buildParams: (input) =>
+      editParams(
+        join(
+          "Edit the video: replace the face of the person in Video 1 with the face from Image 1 — same identity, skin tone, eyes, nose and mouth.",
+          "Keep the hair, head shape, expressions, lip movements, head turns, lighting and camera exactly as in Video 1.",
+          "Seamless blend at the jawline and hairline, no mask edges. Keep everything else unchanged.",
+        ),
+        input,
+      ),
   },
 ];
 
 export const getMode = (id?: string) => MODES.find((m) => m.id === id) ?? MODES[0];
 
-export function estimateCredits(mode: Mode, options: Record<string, string>, seconds: number) {
-  const billable = Math.min(Math.max(seconds || mode.minSeconds, mode.minSeconds), mode.maxSeconds(options));
-  return Math.ceil(billable * mode.creditsPerSecond(options));
+export function billableSeconds(mode: Mode, seconds: number) {
+  return Math.min(Math.max(Math.ceil(seconds || mode.minSeconds), mode.minSeconds), mode.maxSeconds);
 }
 
-export interface PricePack {
-  id: string;
+export function estimateCredits(mode: Mode, options: Record<string, string>, seconds: number) {
+  const res = (options.resolution as Resolution) ?? "480p";
+  return Math.ceil((billableSeconds(mode, seconds) * COINS_PER_SOURCE_SECOND[res]) / COINS_PER_CREDIT);
+}
+
+export const creditsPerSecond = (res: Resolution) => COINS_PER_SOURCE_SECOND[res] / COINS_PER_CREDIT;
+
+export type BillingInterval = "month" | "year";
+export type PlanId = "starter" | "pro" | "studio";
+
+export interface Plan {
+  id: PlanId;
   name: string;
-  price: number;
+  rank: number;
+  /** 每月发放的站点积分（年付同样按月发放，当月未用完即过期） */
   credits: number;
-  stripeLookup: string;
+  monthly: number;
+  /** 年付总价 = 月价 × 12 × 0.8 */
+  yearly: number;
   highlight?: boolean;
   perks: string[];
 }
 
-export const PRICE_PACKS: PricePack[] = [
+export const YEARLY_DISCOUNT = 0.2;
+
+export const PLANS: Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    price: 4.99,
-    credits: 50,
-    stripeLookup: "genjutsu_starter_50",
-    perks: ["≈ 12s of Motion Transfer", "All 5 modes", "720p output", "No watermark"],
+    rank: 1,
+    credits: 420,
+    monthly: 24.99,
+    yearly: 239.9,
+    perks: ["3 × 15s HD clips / month (≈ 46s 720p)", "All 7 modes", "No watermark", "Top up with credit packs"],
   },
   {
-    id: "creator",
-    name: "Creator",
-    price: 9.99,
-    credits: 120,
-    stripeLookup: "genjutsu_creator_120",
+    id: "pro",
+    name: "Pro",
+    rank: 2,
+    credits: 1000,
+    monthly: 49.99,
+    yearly: 479.9,
     highlight: true,
-    perks: ["≈ 30s of Motion Transfer", "Pro quality unlocked", "Priority queue", "Commercial use"],
+    perks: ["7 × 15s HD clips / month (≈ 1m50s 720p)", "1080p unlocked", "Priority queue", "Commercial use"],
   },
   {
     id: "studio",
     name: "Studio",
-    price: 39.99,
-    credits: 600,
-    stripeLookup: "genjutsu_studio_600",
-    perks: ["≈ 150s of Motion Transfer", "1080p & Pro everywhere", "Fastest queue", "Batch-ready API access"],
+    rank: 3,
+    credits: 2100,
+    monthly: 99.99,
+    yearly: 959.9,
+    perks: ["15 × 15s HD clips / month (≈ 3m50s 720p)", "1080p everywhere", "Fastest queue", "Commercial use"],
   },
 ];
+
+export const planLookup = (plan: PlanId, interval: BillingInterval) => `genjutsu_${plan}_${interval}`;
+
+export function planFromLookup(lookup?: string | null): { plan: Plan; interval: BillingInterval } | null {
+  const m = /^genjutsu_(starter|pro|studio)_(month|year)$/.exec(lookup ?? "");
+  const plan = m && PLANS.find((p) => p.id === m[1]);
+  return plan ? { plan, interval: m![2] as BillingInterval } : null;
+}
+
+export interface CreditPack {
+  credits: number;
+  price: number;
+  lookup: string;
+}
+
+/** 永久积分包，仅限有效订阅用户购买 */
+export const CREDIT_PACKS: CreditPack[] = [
+  { credits: 150, price: 11.99, lookup: "genjutsu_pack_150" },
+  { credits: 450, price: 32.99, lookup: "genjutsu_pack_450" },
+  { credits: 1000, price: 69.99, lookup: "genjutsu_pack_1000" },
+];
+
+/** 注册赠送：够一条 5 秒 480p 体验视频（需通过设备指纹 / 邮箱风控） */
+export const FREE_TRIAL = { credits: 23, seconds: 5, resolution: "480p" as Resolution };

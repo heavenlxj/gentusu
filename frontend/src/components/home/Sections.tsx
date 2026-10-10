@@ -1,66 +1,89 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Eye, Fingerprint, Layers, Lock, Minus, Plus, ScanLine, ShieldCheck, Sparkles, Waves } from "lucide-react";
-import { MODES } from "@/config/site";
+import { FREE_TRIAL, MODES, PLANS, creditsPerSecond, type Mode } from "@/config/site";
+import { CompareSlider } from "@/components/studio/CompareSlider";
 import { cn } from "@/lib/cn";
 
-export function Ticker() {
-  const words = ["Motion transfer", "Character swap", "Object swap", "Restyle", "Face swap", "Identity lock", "Up to 1080p", "Photoreal · 3D · Anime"];
-  const row = [...words, ...words];
+export function Showcase() {
   return (
-    <div className="mt-24 border-y border-white/5 bg-white/[0.02] py-4">
-      <div className="flex w-max animate-marquee gap-10 whitespace-nowrap">
-        {row.map((w, i) => (
-          <span key={i} className="flex items-center gap-10 font-display text-lg font-bold uppercase tracking-wide text-white/70">
-            {w} <span className="text-chakra-500">✦</span>
-          </span>
-        ))}
+    <section id="showcase" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 pt-28 sm:px-6">
+      <div className="pointer-events-none absolute inset-x-0 top-20 -z-10 mx-auto h-[520px] max-w-4xl rounded-full bg-chakra-500/20 blur-[140px]" />
+      <div className="mb-12 text-center">
+        <p className="eyebrow">Real renders · sound on</p>
+        <h2 className="mt-3 font-display text-4xl font-black leading-[1.05] sm:text-6xl">
+          {MODES.length} illusions.
+          <br />
+          <span className="bg-gradient-to-r from-chakra-300 via-chakra-500 to-fuchsia-400 bg-clip-text text-transparent">Same take, new reality.</span>
+        </h2>
+        <p className="mx-auto mt-4 max-w-xl text-white/55">
+          Every clip below is untouched model output. Drag the handle to reveal the original, tap the speaker to hear it.
+        </p>
       </div>
-    </div>
-  );
-}
-
-export function ModesShowcase() {
-  return (
-    <section id="showcase" className="mx-auto max-w-7xl scroll-mt-24 px-4 pt-28 sm:px-6">
-      <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <p className="eyebrow">Five illusions</p>
-          <h2 className="mt-3 font-display text-4xl font-black leading-tight sm:text-5xl">
-            One engine.<br />Every kind of illusion.
-          </h2>
-        </div>
-        <p className="max-w-sm text-white/55">All modes share the same identity-preserving core, so switching never costs you quality.</p>
-      </div>
-      <div className="grid gap-4 md:grid-cols-6">
+      <div className="space-y-10 sm:space-y-16">
         {MODES.map((m, i) => (
-          <Link
-            key={m.id}
-            to={`/${m.id}`}
-            className={cn("group relative overflow-hidden rounded-[28px] border border-white/10 bg-ink-900", i < 2 ? "md:col-span-3 aspect-[16/10]" : "md:col-span-2 aspect-[4/5]")}
-          >
-            <video
-              src={m.cover}
-              className="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
-              muted
-              loop
-              playsInline
-              autoPlay
-              preload="metadata"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent" />
-            <span className="absolute right-5 top-4 font-jp text-6xl font-black text-white/15 transition group-hover:text-chakra-500/60">{m.kanji}</span>
-            <div className="absolute inset-x-0 bottom-0 p-6">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-chakra-300">{m.tagline}</p>
-              <p className="mt-1 flex items-center gap-2 font-display text-2xl font-bold">
-                {m.name} <ArrowUpRight className="h-5 w-5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </p>
-              <p className="mt-2 line-clamp-2 max-w-md text-sm text-white/60">{m.description}</p>
-            </div>
-          </Link>
+          <ModeCard key={m.id} mode={m} index={i} />
         ))}
       </div>
     </section>
+  );
+}
+
+function ModeCard({ mode, index }: { mode: Mode; index: number }) {
+  const ex = mode.example;
+  const style = mode.presets?.[ex.preset ?? -1]?.label;
+  const recipe = ex.prompt ?? (style ? `Style: ${style}` : undefined);
+  const flip = index % 2 === 1;
+
+  return (
+    <article className="group relative">
+      <div className="absolute -inset-px rounded-[32px] bg-gradient-to-br from-chakra-500/50 via-white/5 to-fuchsia-500/40 opacity-40 blur-sm transition duration-500 group-hover:opacity-100" />
+      <div className="relative grid overflow-hidden rounded-[32px] border border-white/10 bg-ink-900 lg:grid-cols-[1.65fr_1fr]">
+        <div className={cn("relative bg-black", flip && "lg:order-2")}>
+          <CompareSlider
+            before={ex.before}
+            after={ex.after}
+            poster={ex.poster}
+            beforePoster={ex.beforePoster}
+            afterLabel={mode.name}
+            play="inview"
+            soundId={`showcase-${mode.id}`}
+            className="h-full w-full"
+            style={{ aspectRatio: ex.aspect }}
+          />
+        </div>
+
+        <div className="relative flex flex-col justify-between gap-6 overflow-hidden p-6 sm:p-8">
+          <span className="pointer-events-none absolute -right-6 -top-10 select-none font-jp text-[200px] leading-none text-chakra-500/10 transition duration-700 group-hover:text-chakra-500/20">
+            {mode.kanji}
+          </span>
+          <div className="relative">
+            <p className="font-mono text-xs tracking-[0.3em] text-chakra-400">
+              {String(index + 1).padStart(2, "0")} / {String(MODES.length).padStart(2, "0")}
+            </p>
+            <h3 className="mt-3 font-display text-3xl font-black sm:text-4xl">{mode.name}</h3>
+            <p className="mt-1 text-lg text-chakra-300">{mode.tagline}</p>
+            <p className="mt-4 text-sm leading-relaxed text-white/60">{mode.description}</p>
+          </div>
+
+          <div className="relative space-y-3">
+            <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">What went in</p>
+            <div className="flex items-stretch gap-3">
+              <img src={ex.beforePoster} alt="Source clip" className="h-24 w-32 flex-none rounded-xl object-cover ring-1 ring-white/15" />
+              {ex.images.map((src) => (
+                <img key={src} src={src} alt="Reference" className="h-24 w-20 flex-none rounded-xl object-cover ring-2 ring-chakra-500/70" />
+              ))}
+              {recipe && (
+                <p className="line-clamp-4 flex-1 rounded-xl border border-white/10 bg-ink-950/60 p-3 text-xs italic leading-relaxed text-white/70">“{recipe}”</p>
+              )}
+            </div>
+            <Link to={`/${mode.id}`} className="btn-primary mt-2 w-full sm:w-auto">
+              Try {mode.name} <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -73,17 +96,16 @@ const PIPELINE = [
 
 export function HowItWorks() {
   return (
-    <section id="how" className="mx-auto max-w-7xl scroll-mt-24 px-4 pt-28 sm:px-6">
+    <section id="how" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-28 sm:px-6">
       <p className="eyebrow text-center">How it works</p>
-      <h2 className="mt-3 text-center font-display text-4xl font-black sm:text-5xl">From footage to illusion in minutes</h2>
+      <h2 className="mt-3 text-center font-display text-3xl font-black sm:text-4xl">From footage to illusion in minutes</h2>
       <div className="relative mt-14 grid gap-4 md:grid-cols-4">
-        <div className="pointer-events-none absolute left-0 right-0 top-10 hidden h-px bg-gradient-to-r from-transparent via-chakra-500/50 to-transparent md:block" />
         {PIPELINE.map(({ icon: Icon, title, body }, i) => (
           <div key={title} className="card relative p-6">
-            <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl border border-chakra-500/40 bg-ink-900 text-chakra-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-chakra-500/15 text-chakra-400">
               <Icon className="h-5 w-5" />
             </div>
-            <p className="mt-5 font-mono text-[10px] uppercase tracking-widest text-white/40">Stage 0{i + 1}</p>
+            <p className="mt-5 font-mono text-[11px] text-white/35">0{i + 1}</p>
             <h3 className="mt-1 font-display text-lg font-bold">{title}</h3>
             <p className="mt-2 text-sm text-white/55">{body}</p>
           </div>
@@ -104,9 +126,9 @@ const USES = [
 
 export function UseCases() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-28 sm:px-6">
+    <section className="mx-auto max-w-6xl px-4 pt-28 sm:px-6">
       <p className="eyebrow">Use cases</p>
-      <h2 className="mt-3 max-w-2xl font-display text-4xl font-black sm:text-5xl">Built for people who ship video.</h2>
+      <h2 className="mt-3 max-w-2xl font-display text-3xl font-black sm:text-4xl">Built for people who ship video.</h2>
       <div className="mt-10 grid gap-px overflow-hidden rounded-[28px] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
         {USES.map((u, i) => (
           <div key={u.title} className="group bg-ink-950 p-7 transition hover:bg-ink-900">
@@ -167,14 +189,14 @@ const TRUST = [
 
 export function Responsible() {
   return (
-    <section id="responsible" className="mx-auto max-w-7xl scroll-mt-24 px-4 pt-28 sm:px-6">
-      <div className="grain relative overflow-hidden rounded-[36px] border border-white/10 bg-gradient-to-br from-ink-800 to-ink-950 p-8 sm:p-12">
+    <section id="responsible" className="mx-auto max-w-6xl scroll-mt-24 px-4 pt-28 sm:px-6">
+      <div className="rounded-[28px] border border-white/10 bg-ink-900 p-8 sm:p-10">
         <p className="eyebrow">Responsible AI</p>
         <h2 className="mt-3 max-w-xl font-display text-3xl font-black sm:text-4xl">Powerful illusions need clear rules.</h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {TRUST.map(({ icon: Icon, title, body }) => (
             <div key={title}>
-              <Icon className="h-6 w-6 text-spirit" />
+              <Icon className="h-5 w-5 text-chakra-400" />
               <h3 className="mt-3 font-semibold">{title}</h3>
               <p className="mt-1 text-sm text-white/55">{body}</p>
             </div>
@@ -187,10 +209,22 @@ export function Responsible() {
 
 const FAQS = [
   { q: "What is Genjutsu AI?", a: "A video tool that transforms existing footage: transfer its motion to a new character, swap a person, object or face, or restyle the whole scene — while the original movement, camera and timing are preserved." },
-  { q: "Is this the same as Higgsfield Genjutsu?", a: "No. Genjutsu AI is an independent product offering similar motion-transfer and swap workflows on top of leading video models (Kling, Wan and others)." },
-  { q: "How long can my video be?", a: "Motion Transfer supports 3–30s clips (10s when following the photo orientation). Character Swap up to 30s, Object Swap and Restyle 3–10s, Face Swap up to 10 minutes." },
+  { q: "Is this the same as Higgsfield Genjutsu?", a: "No. Genjutsu AI is an independent product offering similar motion-transfer and swap workflows on top of Alibaba’s Wan 3.0 video model." },
+  { q: "How long can my video be?", a: "Every mode takes source clips from 2 to 15 seconds. Longer footage? Split it into 15-second takes and render them one by one." },
+  { q: "Does the result have sound?", a: "Yes. By default the model generates sound that matches the edited scene. In edit modes you can also keep your clip’s original audio instead." },
   { q: "Does it work with anime and 3D characters?", a: "Yes. The engine is style-preserving: photoreal stays photoreal, 3D stays 3D and anime keeps its line art and cel shading." },
-  { q: "How much does it cost?", a: "Credits are charged per second of output and depend on the mode — Face Swap from 1 credit/s, Motion Transfer from 4 credits/s. Failed renders are refunded automatically." },
+  {
+    q: "How much does it cost?",
+    a: `New accounts get ${FREE_TRIAL.credits} free credits — one ${FREE_TRIAL.seconds}s ${FREE_TRIAL.resolution} clip (watermarked). After that it's one rate for every mode: ${creditsPerSecond("480p")} credits per second at 480p, ${creditsPerSecond("720p")} at 720p HD and ${creditsPerSecond("1080p")} at 1080p. Plans start at $${PLANS[0].monthly}/month with ${PLANS[0].credits} credits (save 20% yearly), and failed renders are refunded automatically.`,
+  },
+  {
+    q: "Do credits expire?",
+    a: "Plan credits are issued every billing month and expire at the end of that month — yearly plans get a fresh batch each month. Credit packs (for subscribers) never expire and are only used once your monthly credits run out.",
+  },
+  {
+    q: "Can I upgrade or cancel?",
+    a: "Upgrade anytime: you pay only the prorated difference and the extra credits land immediately. Cancel anytime and keep using your plan until the end of the billing period.",
+  },
   { q: "Can I use the results commercially?", a: "Yes on Creator and Studio packs, as long as you own or have permission for every likeness and clip you upload." },
 ];
 
@@ -199,17 +233,15 @@ export function FAQ() {
   return (
     <section id="faq" className="mx-auto max-w-3xl scroll-mt-24 px-4 pt-28 sm:px-6">
       <p className="eyebrow text-center">FAQ</p>
-      <h2 className="mt-3 text-center font-display text-4xl font-black sm:text-5xl">Questions, answered.</h2>
+      <h2 className="mt-3 text-center font-display text-3xl font-black sm:text-4xl">Questions, answered.</h2>
       <div className="mt-10 space-y-3">
         {FAQS.map((f, i) => {
           const isOpen = open === i;
           return (
-            <div key={f.q} className={cn("card overflow-hidden transition", isOpen && "border-chakra-500/40")}>
+            <div key={f.q} className="card overflow-hidden">
               <button type="button" onClick={() => setOpen(isOpen ? null : i)} className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left font-semibold">
                 {f.q}
-                <span className={cn("flex h-7 w-7 flex-none items-center justify-center rounded-full transition", isOpen ? "bg-chakra-500" : "bg-white/5")}>
-                  {isOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                </span>
+                {isOpen ? <Minus className="h-4 w-4 flex-none text-chakra-400" /> : <Plus className="h-4 w-4 flex-none text-white/50" />}
               </button>
               <div className={cn("grid transition-all duration-300", isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
                 <p className="overflow-hidden px-6 text-sm leading-relaxed text-white/60">
@@ -226,12 +258,11 @@ export function FAQ() {
 
 export function FinalCTA() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pt-28 sm:px-6">
-      <div className="grain relative overflow-hidden rounded-[40px] bg-chakra-500 px-6 py-16 text-center sm:py-20">
-        <span className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 select-none font-jp text-[200px] font-black leading-none text-ink-950/15">幻術</span>
-        <h2 className="relative font-display text-4xl font-black leading-tight sm:text-6xl">Cast the illusion.</h2>
-        <p className="relative mx-auto mt-4 max-w-md text-white/85">One photo, one clip, one click. Your first render is on us.</p>
-        <a href="#studio" className="relative mt-8 inline-flex items-center gap-2 rounded-full bg-ink-950 px-8 py-4 font-semibold transition hover:scale-[1.03]">
+    <section className="mx-auto max-w-6xl px-4 pt-28 sm:px-6">
+      <div className="rounded-[28px] bg-chakra-500 px-6 py-14 text-center">
+        <h2 className="font-display text-3xl font-black leading-tight sm:text-5xl">Cast the illusion.</h2>
+        <p className="mx-auto mt-4 max-w-md text-white/85">One photo, one clip, one click. Your first {FREE_TRIAL.seconds}s clip is on us.</p>
+        <a href="#studio" className="mt-7 inline-flex items-center gap-2 rounded-full bg-ink-950 px-7 py-3.5 font-semibold transition hover:bg-ink-800">
           Open the studio
         </a>
       </div>

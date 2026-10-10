@@ -12,23 +12,15 @@ export default function ModePage() {
   const others = MODES.filter((m) => m.id !== mode.id);
 
   return (
-    <div className="pt-32">
+    <div>
       <Helmet>
         <title>{mode.seoTitle} | {SITE.name}</title>
         <meta name="description" content={mode.seoDescription} />
       </Helmet>
 
-      <section className="relative mx-auto max-w-7xl px-4 sm:px-6">
-        <span className="pointer-events-none absolute -top-16 right-4 select-none font-jp text-[180px] font-black leading-none text-white/[0.04]">{mode.kanji}</span>
-        <p className="eyebrow">{mode.tagline}</p>
-        <h1 className="mt-3 max-w-3xl font-display text-4xl font-black leading-tight sm:text-6xl">{mode.seoTitle}</h1>
-        <p className="mt-4 max-w-2xl text-lg text-white/60">{mode.description}</p>
-        <div className="mt-10">
-          <Studio initialMode={mode.id} routeOnSwitch />
-        </div>
-      </section>
+      <Studio initialMode={mode.id} routeOnSwitch title={mode.seoTitle} subtitle={mode.description} />
 
-      <section className="mx-auto max-w-7xl px-4 pt-24 sm:px-6">
+      <section className="mx-auto max-w-6xl px-4 pt-24 sm:px-6">
         <p className="eyebrow">More illusions</p>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {others.map((m) => (

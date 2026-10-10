@@ -28,7 +28,7 @@ export default {
         jp: ['"Noto Serif JP"', "serif"],
       },
       boxShadow: {
-        chakra: "0 0 0 1px rgba(255,31,75,.35), 0 30px 120px -20px rgba(255,31,75,.5)",
+        chakra: "0 40px 100px -40px rgba(255,31,75,.4)",
         glow: "0 0 40px rgba(255,31,75,.55)",
       },
       keyframes: {

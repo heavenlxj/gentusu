@@ -1,0 +1,10 @@
+# 素材统一放在 ../demo_videos 并托管在 R2，不进仓库
+frontend/public/demo/
+frontend/public/templates/
+*.mp4
+*.mov
+*.webm
+*.mp3
+*.m4a
+__pycache__/
+.DS_Store

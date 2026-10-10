@@ -1,33 +1,41 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { MoveHorizontal } from "lucide-react";
+import { SoundButton, useSound } from "@/components/ui/Sound";
 import { cn } from "@/lib/cn";
 
 interface CompareSliderProps {
   before: string;
   after: string;
+  poster?: string;
+  beforePoster?: string;
   beforeLabel?: string;
   afterLabel?: string;
   className?: string;
-  autoSweep?: boolean;
+  style?: CSSProperties;
+  /** "auto": always playing · "hover": first frame until hovered · "inview": plays while on screen */
+  play?: "auto" | "hover" | "inview";
+  /** Enables the sound toggle; the soundtrack comes from the "after" clip. */
+  soundId?: string;
 }
 
-export function CompareSlider({ before, after, beforeLabel = "Original", afterLabel = "Genjutsu", className, autoSweep = false }: CompareSliderProps) {
+export function CompareSlider({
+  before,
+  after,
+  poster,
+  beforePoster,
+  beforeLabel = "Original",
+  afterLabel = "Result",
+  className,
+  style,
+  play = "auto",
+  soundId,
+}: CompareSliderProps) {
   const [pos, setPos] = useState(50);
   const [dragging, setDragging] = useState(false);
-  const [touched, setTouched] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const beforeRef = useRef<HTMLVideoElement>(null);
   const afterRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (!autoSweep || touched) return;
-    let t = 0;
-    const id = window.setInterval(() => {
-      t += 0.03;
-      setPos(50 + Math.sin(t) * 32);
-    }, 30);
-    return () => window.clearInterval(id);
-  }, [autoSweep, touched]);
+  const sound = useSound(soundId ?? `compare-${after}`);
 
   useEffect(() => {
     const a = afterRef.current;
@@ -40,6 +48,25 @@ export function CompareSlider({ before, after, beforeLabel = "Original", afterLa
     return () => a.removeEventListener("timeupdate", sync);
   }, [before, after]);
 
+  const setPlaying = useCallback((on: boolean) => {
+    for (const v of [afterRef.current, beforeRef.current]) {
+      if (!v) continue;
+      if (on) v.play().catch(() => {});
+      else v.pause();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (play !== "inview" || !box.current) return;
+    const io = new IntersectionObserver(([entry]) => setPlaying(entry.isIntersecting), { threshold: 0.35 });
+    io.observe(box.current);
+    return () => io.disconnect();
+  }, [play, setPlaying]);
+
+  useEffect(() => {
+    if (sound.on) setPlaying(true);
+  }, [sound.on, setPlaying]);
+
   const move = useCallback((clientX: number) => {
     const rect = box.current?.getBoundingClientRect();
     if (!rect) return;
@@ -48,36 +75,46 @@ export function CompareSlider({ before, after, beforeLabel = "Original", afterLa
 
   const onDown = (e: PointerEvent) => {
     setDragging(true);
-    setTouched(true);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     move(e.clientX);
   };
 
+  const shared = {
+    autoPlay: play === "auto",
+    loop: true,
+    playsInline: true,
+    preload: play === "auto" ? "auto" : play === "inview" ? "metadata" : "none",
+  } as const;
+
   return (
     <div
       ref={box}
-      className={cn("relative select-none overflow-hidden bg-ink-900", dragging ? "cursor-grabbing" : "cursor-ew-resize", className)}
+      className={cn("relative select-none overflow-hidden bg-black", dragging ? "cursor-grabbing" : "cursor-ew-resize", className)}
+      style={style}
       onPointerDown={onDown}
       onPointerMove={(e) => dragging && move(e.clientX)}
       onPointerUp={() => setDragging(false)}
+      onMouseEnter={() => play === "hover" && setPlaying(true)}
+      onMouseLeave={() => play === "hover" && !sound.on && setPlaying(false)}
     >
-      <video ref={afterRef} src={after} className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline />
+      <video ref={afterRef} src={after} poster={poster} muted={!soundId || !sound.on} className="absolute inset-0 h-full w-full object-cover" {...shared} />
       <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
-        <video ref={beforeRef} src={before} className="h-full w-full object-cover" autoPlay muted loop playsInline />
+        <video ref={beforeRef} src={before} poster={beforePoster} muted className="h-full w-full object-cover" {...shared} />
       </div>
 
-      <div className="pointer-events-none absolute inset-y-0 z-10 w-px bg-white/90 shadow-[0_0_20px_rgba(124,247,255,.9)]" style={{ left: `${pos}%` }}>
-        <div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-ink-950/70 backdrop-blur">
-          <MoveHorizontal className="h-4 w-4 text-spirit" />
+      <div className="pointer-events-none absolute inset-y-0 z-10 w-0.5 -translate-x-1/2 bg-white" style={{ left: `${pos}%` }}>
+        <div className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink-950 shadow-lg">
+          <MoveHorizontal className="h-4 w-4" />
         </div>
       </div>
 
-      <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-ink-950/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-white/80 backdrop-blur">
+      <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-ink-950/70 px-2.5 py-1 text-[11px] font-medium text-white/85 backdrop-blur">
         {beforeLabel}
       </span>
-      <span className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-chakra-500 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-white">
+      <span className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-chakra-500 px-2.5 py-1 text-[11px] font-medium text-white">
         {afterLabel}
       </span>
+      {soundId && <SoundButton on={sound.on} onToggle={sound.toggle} className="absolute bottom-3 right-3" />}
     </div>
   );
 }

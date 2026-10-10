@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ChevronDown, Coins, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, Clapperboard, Coins, LogOut, Menu, X } from "lucide-react";
 import { CONFIG, MODES, SITE } from "@/config/site";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { cn } from "@/lib/cn";
@@ -10,7 +10,7 @@ export function Logo() {
     <Link to="/" className="flex items-center gap-2.5">
       <span className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-chakra-500">
         <span className="h-2.5 w-2.5 rounded-full bg-chakra-500 shadow-glow" />
-        <span className="absolute -right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-spirit" />
+        <span className="absolute -right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-chakra-400" />
       </span>
       <span className="font-display text-lg font-bold tracking-tight">
         Genjutsu<span className="text-chakra-500">.</span>
@@ -34,13 +34,15 @@ export function Navbar() {
 
   return (
     <header className={cn("fixed inset-x-0 top-0 z-50 transition", scrolled ? "border-b border-white/5 bg-ink-950/80 backdrop-blur-xl" : "")}>
-      {CONFIG.demoMode && (
-        <div className="bg-gradient-to-r from-chakra-600 via-chakra-500 to-chakra-600 py-1 text-center font-mono text-[10px] font-bold uppercase tracking-[0.25em]">
-          Demo mode · renders are simulated
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <Logo />
+          {CONFIG.demoMode && (
+            <span className="hidden rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-white/45 sm:inline" title="Renders are simulated with sample videos">
+              Demo
+            </span>
+          )}
         </div>
-      )}
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Logo />
         <div className="hidden items-center gap-1 md:flex">
           <div className="group relative">
             <button type="button" className="flex items-center gap-1 rounded-full px-4 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white">
@@ -67,6 +69,14 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              <NavLink
+                to="/library"
+                className={({ isActive }) =>
+                  cn("hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition sm:flex", isActive ? "bg-white/10 text-white" : "text-white/70 hover:text-white")
+                }
+              >
+                <Clapperboard className="h-4 w-4" /> My videos
+              </NavLink>
               <Link to="/pricing" className="hidden items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-sm sm:flex">
                 <Coins className="h-4 w-4 text-chakra-400" /> <b>{credits}</b>
               </Link>
@@ -94,6 +104,9 @@ export function Navbar() {
             </Link>
           ))}
           <Link to="/pricing" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-white/80 hover:bg-white/5">Pricing</Link>
+          {user && (
+            <Link to="/library" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-white/80 hover:bg-white/5">My videos</Link>
+          )}
           {!user && (
             <button type="button" onClick={() => { setOpen(false); openAuth(); }} className="btn-primary mt-3 w-full">Sign in</button>
           )}

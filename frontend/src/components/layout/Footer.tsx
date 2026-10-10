@@ -5,8 +5,7 @@ import { MODES, SITE } from "@/config/site";
 export function Footer() {
   return (
     <footer className="relative mt-28 overflow-hidden border-t border-white/5">
-      <span className="pointer-events-none absolute -bottom-16 right-0 select-none font-jp text-[220px] font-black leading-none text-white/[0.03]">{SITE.kanji}</span>
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <Logo />
           <p className="mt-4 max-w-xs text-sm text-white/50">Motion transfer, character swap and restyle — the art of illusion for every video.</p>
@@ -37,7 +36,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/5">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-xs text-white/35 sm:px-6 md:flex-row md:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-white/35 sm:px-6 md:flex-row md:justify-between">
           <p>© {new Date().getFullYear()} {SITE.name}. 幻術 — the art of illusion.</p>
           <p>Independent product. Not affiliated with Higgsfield.</p>
         </div>

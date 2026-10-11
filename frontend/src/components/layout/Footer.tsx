@@ -30,6 +30,8 @@ export function Footer() {
           <p className="eyebrow mb-4">Trust</p>
           <ul className="space-y-2.5 text-sm">
             <li><a href="/#responsible" className="text-white/60 hover:text-white">Responsible AI</a></li>
+            <li><Link to="/privacy" className="text-white/60 hover:text-white">Privacy Policy</Link></li>
+            <li><Link to="/terms" className="text-white/60 hover:text-white">Terms of Service</Link></li>
             <li><a href="/#faq" className="text-white/60 hover:text-white">FAQ</a></li>
             <li><a href={`mailto:${SITE.supportEmail}`} className="text-white/60 hover:text-white">Contact</a></li>
           </ul>

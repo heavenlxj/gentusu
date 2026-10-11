@@ -7,11 +7,14 @@ import { SoundProvider } from "@/components/ui/Sound";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuthModal } from "@/components/layout/AuthModal";
+import { Analytics } from "@vercel/analytics/react";
 import Home from "@/pages/Home";
 import ModePage from "@/pages/ModePage";
 import PricingPage from "@/pages/PricingPage";
 import Library from "@/pages/Library";
 import SharedVideo from "@/pages/SharedVideo";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
 
 function ScrollManager() {
   const { pathname, hash } = useLocation();
@@ -36,6 +39,7 @@ export default function App() {
           <SoundProvider>
             <BrowserRouter>
               <ScrollManager />
+              <Analytics />
               <Navbar />
               <main className="min-h-screen">
                 <Routes>
@@ -43,6 +47,8 @@ export default function App() {
                   <Route path="/pricing" element={<PricingPage />} />
                   <Route path="/library" element={<Library />} />
                   <Route path="/v/:shareId" element={<SharedVideo />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
                   <Route path="/:modeId" element={<ModePage />} />
                   <Route path="*" element={<Home />} />
                 </Routes>

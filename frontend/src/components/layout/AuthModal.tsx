@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Gift, Loader2, X } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CompareSlider } from "@/components/studio/CompareSlider";
@@ -45,7 +46,7 @@ export function AuthModal() {
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
             Continue with Google
           </button>
-          <p className="mt-5 text-center text-xs text-white/35">By continuing you confirm you have the right to use every likeness and clip you upload.</p>
+          <p className="mt-5 text-center text-xs text-white/35">By continuing you agree to our <Link to="/terms" className="underline underline-offset-2 hover:text-white/60">Terms</Link> and confirm you have the right to use every likeness and clip you upload.</p>
         </div>
       </div>
     </div>

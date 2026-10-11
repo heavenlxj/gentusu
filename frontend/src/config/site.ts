@@ -463,5 +463,5 @@ export const CREDIT_PACKS: CreditPack[] = [
   { credits: 3000, price: 169.99, lookup: "genjutsu_pack_3000" },
 ];
 
-/** 注册赠送：够一条 5 秒 480p 体验视频（需通过设备指纹 / 邮箱风控） */
-export const FREE_TRIAL = { credits: 30, seconds: 6, resolution: "480p" as Resolution };
+/** 注册赠送：够任意示例（≤10 秒 480p）完整跑一次；与后端 DEFAULT_USER_CREDITS=500 金币对应（需通过设备指纹 / 邮箱风控） */
+export const FREE_TRIAL = { credits: 50, seconds: 10, resolution: "480p" as Resolution };

@@ -1,0 +1,27 @@
+# Genjutsu AI
+
+> Genjutsu AI (https://genjutsusi.app) is an AI video-to-video studio — an independent Higgsfield Genjutsu alternative. It keeps a clip's original motion, camera path and timing while changing the character, outfit, an object, the location, the face or the whole art style. Seven modes: motion transfer, character swap, outfit swap, object swap, background swap, restyle and face swap. Built on Alibaba's Wan video models.
+
+- Source clips: 2–15 seconds; output 480p, 720p or 1080p; AI sound or original audio.
+- Free trial: one free 10-second 480p clip for new accounts. Plans from $24.99/month; one per-second rate for every mode.
+- Not affiliated with Higgsfield.
+
+## Tools
+
+- [Motion transfer](https://genjutsusi.app/motion-transfer): put a character photo into any dance, fight or trend clip
+- [Character swap](https://genjutsusi.app/character-swap): replace the performer from one photo
+- [Outfit swap](https://genjutsusi.app/outfit-swap): change clothes in a video
+- [Object swap](https://genjutsusi.app/object-swap): replace products and props
+- [Background swap](https://genjutsusi.app/background-swap): move a clip to a new location
+- [Restyle](https://genjutsusi.app/restyle): video to anime, claymation, cyberpunk or live-action
+- [Face swap](https://genjutsusi.app/face-swap): swap faces in any clip
+
+## Guides
+
+- [What is Genjutsu AI?](https://genjutsusi.app/what-is-genjutsu-ai)
+- [Higgsfield Genjutsu alternative](https://genjutsusi.app/higgsfield-genjutsu-alternative)
+- [Pricing](https://genjutsusi.app/pricing)
+
+## Related
+
+- [Hotel Lobby AI](https://hotellobbysi.app/): sister product for the viral Hotel Lobby orange-booth duet trend

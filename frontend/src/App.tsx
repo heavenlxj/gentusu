@@ -15,6 +15,8 @@ import Library from "@/pages/Library";
 import SharedVideo from "@/pages/SharedVideo";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Topic from "@/pages/Topic";
+import { TOPICS } from "@/config/topics";
 
 function ScrollManager() {
   const { pathname, hash } = useLocation();
@@ -49,6 +51,9 @@ export default function App() {
                   <Route path="/v/:shareId" element={<SharedVideo />} />
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/terms" element={<Terms />} />
+                  {TOPICS.map((t) => (
+                    <Route key={t.slug} path={`/${t.slug}`} element={<Topic slug={t.slug} />} />
+                  ))}
                   <Route path="/:modeId" element={<ModePage />} />
                   <Route path="*" element={<Home />} />
                 </Routes>

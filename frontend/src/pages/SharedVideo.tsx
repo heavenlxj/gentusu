@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useParams } from "react-router-dom";
 import { Loader2, Wand2 } from "lucide-react";
-import { SITE } from "@/config/site";
+import { FREE_TRIAL, SITE } from "@/config/site";
+import { Seo } from "@/components/seo/Seo";
 import { kinkora, type Generation } from "@/lib/kinkora";
 
 export default function SharedVideo() {
@@ -21,12 +22,19 @@ export default function SharedVideo() {
 
   return (
     <section className="mx-auto flex max-w-3xl flex-col items-center px-4 pb-20 pt-24 text-center sm:pt-28">
-      <Helmet>
-        <title>{title}</title>
-        <meta property="og:title" content={title} />
-        {item?.posterUrl && <meta property="og:image" content={item.posterUrl} />}
-        {item?.videoUrl && <meta property="og:video" content={item.videoUrl} />}
-      </Helmet>
+      <Seo
+        title={title}
+        description="Same motion, new reality — made with Genjutsu AI motion transfer and video swap. Make yours free."
+        path={`/v/${shareId}`}
+        type="video.other"
+        image={item?.posterUrl ?? undefined}
+        noindex
+      />
+      {item?.videoUrl && (
+        <Helmet>
+          <meta property="og:video" content={item.videoUrl} />
+        </Helmet>
+      )}
 
       {item?.videoUrl ? (
         <video
@@ -45,7 +53,10 @@ export default function SharedVideo() {
       )}
 
       <h1 className="mt-8 font-display text-3xl uppercase tracking-tight sm:text-4xl">Recast any video with AI</h1>
-      <p className="mt-2 max-w-md text-sm text-white/55">Swap characters, outfits, scenes and styles while every move stays the same. Your first 5s clip is free.</p>
+      <p className="mt-2 max-w-md text-sm text-white/55">
+        Swap characters, outfits, scenes and styles while every move stays the same. New accounts get {FREE_TRIAL.credits} free
+        credits — one {FREE_TRIAL.seconds}s {FREE_TRIAL.resolution} clip.
+      </p>
       <Link to="/#studio" className="btn-primary mt-5">
         <Wand2 className="h-4 w-4" /> Make yours
       </Link>

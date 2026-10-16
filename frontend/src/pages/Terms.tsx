@@ -1,14 +1,11 @@
-import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/seo/Seo";
 import { Link } from "react-router-dom";
 import { SITE } from "@/config/site";
 
 export default function Terms() {
   return (
     <article className="mx-auto max-w-3xl px-4 pt-36 pb-24 sm:px-6">
-      <Helmet>
-        <title>Terms of Service — {SITE.name}</title>
-        <meta name="description" content={`The terms that govern your use of ${SITE.name}.`} />
-      </Helmet>
+      <Seo title={`Terms of Service — ${SITE.name}`} description={`The terms that govern your use of ${SITE.name}.`} path="/terms" />
 
       <p className="eyebrow">Legal</p>
       <h1 className="mt-4 font-display text-4xl uppercase leading-[1.05] sm:text-5xl">Terms of Service</h1>

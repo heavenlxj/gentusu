@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { CONFIG } from "@/config/site";
-import { getVisitorId } from "@/lib/fingerprint";
+import { prewarmVisitorId } from "@/lib/fingerprint";
 import { supabase } from "@/lib/supabase";
 import { EMPTY_BILLING, kinkora, KinkoraError, type BillingState } from "@/lib/kinkora";
 
@@ -40,14 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (CONFIG.demoMode || !supabase) return;
-    getVisitorId();
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user;
+      if (u) prewarmVisitorId();
       setUser(u ? { id: u.id, email: u.email, avatarUrl: u.user_metadata?.avatar_url ?? u.user_metadata?.picture, name: u.user_metadata?.full_name ?? u.user_metadata?.name } : null);
       setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const u = session?.user;
+      if (u) prewarmVisitorId();
       setUser(u ? { id: u.id, email: u.email, avatarUrl: u.user_metadata?.avatar_url ?? u.user_metadata?.picture, name: u.user_metadata?.full_name ?? u.user_metadata?.name } : null);
     });
     return () => sub.subscription.unsubscribe();

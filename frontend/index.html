@@ -18,26 +18,102 @@
         }
       } catch (e) {}
     </script>
-    <title>Genjutsu AI — Motion Transfer, Character Swap & Video Restyle</title>
+    <title>Genjutsu AI Video Generator — Motion Transfer, Object Swap & Restyle</title>
     <meta
       name="description"
-      content="Genjutsu AI rewrites reality in any video. Transfer motion to a new character, swap people or objects, restyle the whole scene — the movement and camera stay exactly as filmed."
+      data-rh="true"
+      content="Genjutsu AI video generator: transfer motion to any character, swap people, outfits or objects, or restyle a clip into anime — motion and camera stay as filmed. A Higgsfield Genjutsu alternative."
     />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Genjutsu AI" />
-    <meta property="og:title" content="Genjutsu AI — Rewrite reality in any video" />
-    <meta property="og:description" content="Motion transfer, character swap & restyle — the movement and camera stay as filmed." />
-    <meta property="og:image" content="https://storage.genjutsusi.app/brand/og-image.png" />
+    <meta name="robots" data-rh="true" content="index, follow, max-image-preview:large, max-video-preview:-1" />
+    <link rel="canonical" data-rh="true" href="https://genjutsusi.app/" />
+    <meta property="og:type" data-rh="true" content="website" />
+    <meta property="og:site_name" data-rh="true" content="Genjutsu AI" />
+    <meta property="og:url" data-rh="true" content="https://genjutsusi.app/" />
+    <meta property="og:title" data-rh="true" content="Genjutsu AI Video Generator — Motion Transfer, Object Swap & Restyle" />
+    <meta property="og:description" data-rh="true" content="Motion transfer, character swap, object swap & restyle — the movement and camera stay as filmed." />
+    <meta property="og:image" data-rh="true" content="https://storage.genjutsusi.app/brand/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://storage.genjutsusi.app/brand/og-image.png" />
+    <meta name="twitter:card" data-rh="true" content="summary_large_image" />
+    <meta name="twitter:title" data-rh="true" content="Genjutsu AI Video Generator — Motion Transfer, Object Swap & Restyle" />
+    <meta name="twitter:description" data-rh="true" content="Motion transfer, character swap, object swap & restyle — the movement and camera stay as filmed." />
+    <meta name="twitter:image" data-rh="true" content="https://storage.genjutsusi.app/brand/og-image.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://genjutsusi.app/#website",
+            "url": "https://genjutsusi.app/",
+            "name": "Genjutsu AI",
+            "alternateName": ["Genjutsu AI Video Generator", "Genjutsu Video", "幻術"],
+            "inLanguage": "en"
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://genjutsusi.app/#org",
+            "name": "Genjutsu AI",
+            "url": "https://genjutsusi.app/",
+            "logo": "https://genjutsusi.app/icon-512.png",
+            "email": "support@genjutsusi.app"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Genjutsu AI Video Generator",
+            "applicationCategory": "MultimediaApplication",
+            "operatingSystem": "Web",
+            "url": "https://genjutsusi.app/",
+            "description": "AI video-to-video studio: motion transfer, character swap, outfit swap, object swap, background swap, restyle and face swap. The original motion, camera and timing are preserved.",
+            "featureList": ["Motion transfer", "Character swap", "Outfit swap", "Object swap", "Background swap", "Video restyle", "Video face swap"],
+            "publisher": { "@id": "https://genjutsusi.app/#org" },
+            "offers": {
+              "@type": "AggregateOffer",
+              "priceCurrency": "USD",
+              "lowPrice": "24.99",
+              "highPrice": "129.99",
+              "offerCount": 3
+            }
+          }
+        ]
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://storage.genjutsusi.app" />
+    <script>
+      if (location.pathname === "/") {
+        var heroPoster = document.createElement("link");
+        heroPoster.rel = "preload";
+        heroPoster.as = "image";
+        heroPoster.href = "https://storage.genjutsusi.app/demo/mt-after.jpg";
+        heroPoster.setAttribute("fetchpriority", "high");
+        document.head.appendChild(heroPoster);
+      }
+    </script>
     <link
-      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Noto+Serif+JP:wght@700;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <!-- Noto Serif JP is subset with text=: it must list every kanji used in src/config/site.ts (幻術転替装換景彩顔) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700;900&display=swap&text=%E5%B9%BB%E8%A1%93%E8%BB%A2%E6%9B%BF%E8%A3%85%E6%8F%9B%E6%99%AF%E5%BD%A9%E9%A1%94"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700;900&display=swap&text=%E5%B9%BB%E8%A1%93%E8%BB%A2%E6%9B%BF%E8%A3%85%E6%8F%9B%E6%99%AF%E5%BD%A9%E9%A1%94"
+        rel="stylesheet"
+      />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

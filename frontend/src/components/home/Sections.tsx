@@ -69,9 +69,9 @@ function ModeCard({ mode, index }: { mode: Mode; index: number }) {
           <div className="relative space-y-3">
             <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">What went in</p>
             <div className="flex items-stretch gap-3">
-              <img src={ex.beforePoster} alt="Source clip" className="h-24 w-32 flex-none rounded-xl object-cover ring-1 ring-white/15" />
+              <img src={ex.beforePoster} alt="Source clip" loading="lazy" className="h-24 w-32 flex-none rounded-xl object-cover ring-1 ring-white/15" />
               {ex.images.map((src) => (
-                <img key={src} src={src} alt="Reference" className="h-24 w-20 flex-none rounded-xl object-cover ring-2 ring-chakra-500/70" />
+                <img key={src} src={src} alt="Reference" loading="lazy" className="h-24 w-20 flex-none rounded-xl object-cover ring-2 ring-chakra-500/70" />
               ))}
               {recipe && (
                 <p className="line-clamp-4 flex-1 rounded-xl border border-white/10 bg-ink-950/60 p-3 text-xs italic leading-relaxed text-white/70">“{recipe}”</p>
@@ -207,9 +207,11 @@ export function Responsible() {
   );
 }
 
-const FAQS = [
+export const FAQS = [
   { q: "What is Genjutsu AI?", a: "A video tool that transforms existing footage: transfer its motion to a new character, swap a person, object or face, or restyle the whole scene — while the original movement, camera and timing are preserved." },
-  { q: "Is this the same as Higgsfield Genjutsu?", a: "No. Genjutsu AI is an independent product offering similar motion-transfer and swap workflows on top of Alibaba’s Wan 3.0 video model." },
+  { q: "Is this the same as Higgsfield Genjutsu?", a: "No. Genjutsu AI is an independent Higgsfield Genjutsu alternative offering similar motion-transfer and swap workflows on top of Alibaba’s Wan 3.0 video model." },
+  { q: "How is it different from Kling Motion Control?", a: "Kling Motion Control animates a still photo with the movement of a reference clip. Genjutsu AI’s motion transfer and swap modes keep the original clip’s camera path and timing, and can also change just the outfit, an object, the background or the art style." },
+  { q: "Can I make the Hotel Lobby AI trend here?", a: "The Hotel Lobby orange-booth duet has its own dedicated two-photo generator, our sister site Hotel Lobby AI (hotellobbysi.app), with the original song baked in." },
   { q: "How long can my video be?", a: "Every mode takes source clips from 2 to 15 seconds. Longer footage? Split it into 15-second takes and render them one by one." },
   { q: "Does the result have sound?", a: "Yes. By default the model generates sound that matches the edited scene. In edit modes you can also keep your clip’s original audio instead." },
   { q: "Does it work with anime and 3D characters?", a: "Yes. The engine is style-preserving: photoreal stays photoreal, 3D stays 3D and anime keeps its line art and cel shading." },

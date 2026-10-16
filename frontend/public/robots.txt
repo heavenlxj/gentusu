@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /library
+Disallow: /api/
+
+Sitemap: https://genjutsusi.app/sitemap.xml

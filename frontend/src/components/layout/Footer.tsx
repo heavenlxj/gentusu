@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Logo } from "./Navbar";
 import { MODES, SITE } from "@/config/site";
+import { TOPICS } from "@/config/topics";
 
 export function Footer() {
   return (
@@ -24,6 +25,10 @@ export function Footer() {
             <li><a href="/#studio" className="text-white/60 hover:text-white">Studio</a></li>
             <li><a href="/#showcase" className="text-white/60 hover:text-white">Showcase</a></li>
             <li><Link to="/pricing" className="text-white/60 hover:text-white">Pricing</Link></li>
+            {TOPICS.map((t) => (
+              <li key={t.slug}><Link to={`/${t.slug}`} className="text-white/60 hover:text-white">{t.nav}</Link></li>
+            ))}
+            <li><a href={SITE.sisterUrl} target="_blank" rel="noopener" className="text-white/60 hover:text-white">Hotel Lobby AI ↗</a></li>
           </ul>
         </div>
         <div>

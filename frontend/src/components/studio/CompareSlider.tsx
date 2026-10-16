@@ -36,6 +36,11 @@ export function CompareSlider({
   const beforeRef = useRef<HTMLVideoElement>(null);
   const afterRef = useRef<HTMLVideoElement>(null);
   const sound = useSound(soundId ?? `compare-${after}`);
+  const pageLoaded = usePageLoaded();
+  // Hero clips are several MB; holding them until `load` keeps them from competing with first paint.
+  const ready = play !== "auto" || pageLoaded;
+  // A <video poster> is fetched immediately even off-screen; below-the-fold sliders use lazy <img>s instead.
+  const lazyPoster = play !== "auto";
 
   useEffect(() => {
     const a = afterRef.current;
@@ -83,7 +88,7 @@ export function CompareSlider({
     autoPlay: play === "auto",
     loop: true,
     playsInline: true,
-    preload: play === "auto" ? "auto" : play === "inview" ? "metadata" : "none",
+    preload: play === "auto" ? "auto" : "none",
   } as const;
 
   return (
@@ -97,9 +102,11 @@ export function CompareSlider({
       onMouseEnter={() => play === "hover" && setPlaying(true)}
       onMouseLeave={() => play === "hover" && !sound.on && setPlaying(false)}
     >
-      <video ref={afterRef} src={after} poster={poster} muted={!soundId || !sound.on} className="absolute inset-0 h-full w-full object-cover" {...shared} />
+      {lazyPoster && poster && <img src={poster} alt="" aria-hidden loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />}
+      <video ref={afterRef} src={ready ? after : undefined} poster={lazyPoster ? undefined : poster} muted={!soundId || !sound.on} className="absolute inset-0 h-full w-full object-cover" {...shared} />
       <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
-        <video ref={beforeRef} src={before} poster={beforePoster} muted className="h-full w-full object-cover" {...shared} />
+        {lazyPoster && beforePoster && <img src={beforePoster} alt="" aria-hidden loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />}
+        <video ref={beforeRef} src={ready ? before : undefined} poster={lazyPoster ? undefined : beforePoster} muted className="relative h-full w-full object-cover" {...shared} />
       </div>
 
       <div className="pointer-events-none absolute inset-y-0 z-10 w-0.5 -translate-x-1/2 bg-white" style={{ left: `${pos}%` }}>
@@ -117,4 +124,15 @@ export function CompareSlider({
       {soundId && <SoundButton on={sound.on} onToggle={sound.toggle} className="absolute bottom-3 right-3" />}
     </div>
   );
+}
+
+function usePageLoaded() {
+  const [loaded, setLoaded] = useState(() => document.readyState === "complete");
+  useEffect(() => {
+    if (loaded) return;
+    const done = () => setLoaded(true);
+    window.addEventListener("load", done, { once: true });
+    return () => window.removeEventListener("load", done);
+  }, [loaded]);
+  return loaded;
 }

@@ -22,24 +22,45 @@ export function PreviewModal({ item, onClose, onDownload, onShare }: Props) {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4 backdrop-blur" onClick={onClose}>
-      <div className="relative flex max-h-full w-full max-w-3xl flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-        <button type="button" onClick={onClose} className="absolute -top-1 right-0 rounded-full bg-white/10 p-2 hover:bg-white/20" aria-label="Close">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md" onClick={onClose}>
+      {/* 灯箱在两种主题下都是深底：内部文字 / 按钮用固定 snow，别用会翻转的 white */}
+      <div className="relative flex max-h-full w-full max-w-7xl flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-0 top-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-snow/45 bg-snow/15 text-snow transition hover:bg-snow/30"
+          aria-label="Close"
+        >
           <X className="h-5 w-5" />
         </button>
-        <video src={item.videoUrl ?? undefined} poster={item.posterUrl ?? undefined} className="mt-10 max-h-[75vh] w-auto max-w-full rounded-2xl bg-black" controls autoPlay playsInline loop />
-        <div className="flex w-full max-w-md gap-2">
-          <button type="button" onClick={onDownload} className="btn-primary flex-1">
-            <Download className="h-4 w-4" /> Download MP4
+
+        <video
+          src={item.videoUrl ?? undefined}
+          poster={item.posterUrl ?? undefined}
+          className="mt-12 max-h-[82vh] w-full rounded-2xl bg-black object-contain"
+          controls
+          autoPlay
+          playsInline
+          loop
+        />
+
+        <div className="flex w-full max-w-2xl gap-3">
+          <button type="button" onClick={onDownload} className="btn-primary flex-1 py-3.5 text-base">
+            <Download className="h-5 w-5" /> Download MP4
           </button>
-          <button type="button" onClick={onShare} className="btn-ghost flex-1">
-            <Share2 className="h-4 w-4" /> Share
+          <button
+            type="button"
+            onClick={onShare}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-snow px-6 py-3.5 text-base font-semibold text-[#0c0e20] transition hover:bg-snow/90"
+          >
+            <Share2 className="h-5 w-5" /> Share
           </button>
         </div>
+
         {item.watermarked && (
-          <p className="text-center text-xs text-white/50">
+          <p className="text-center text-sm text-snow/70">
             Free renders carry a small watermark.{" "}
-            <Link to="/pricing" className="font-semibold text-chakra-400 underline-offset-4 hover:underline">
+            <Link to="/pricing" className="font-semibold text-snow underline underline-offset-4">
               Any plan removes it
             </Link>
           </p>

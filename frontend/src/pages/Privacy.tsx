@@ -1,17 +1,15 @@
-import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/seo/Seo";
 import { Link } from "react-router-dom";
 import { SITE } from "@/config/site";
 
 export default function Privacy() {
   return (
     <article className="mx-auto max-w-3xl px-4 pt-36 pb-24 sm:px-6">
-      <Helmet>
-        <title>Privacy Policy — {SITE.name}</title>
-        <meta
-          name="description"
-          content={`How ${SITE.name} collects, uses and protects your information when you edit videos and photos.`}
-        />
-      </Helmet>
+      <Seo
+        title={`Privacy Policy — ${SITE.name}`}
+        description={`How ${SITE.name} collects, uses and protects your information when you edit videos and photos.`}
+        path="/privacy"
+      />
 
       <p className="eyebrow">Legal</p>
       <h1 className="mt-4 font-display text-4xl uppercase leading-[1.05] sm:text-5xl">Privacy Policy</h1>

@@ -27,14 +27,18 @@ export function GenerationCard({ item, highlight, onPreview, onDownload, onShare
   return (
     <article
       className={cn(
-        "group overflow-hidden rounded-2xl border bg-ink-900 transition",
-        highlight ? "border-chakra-500 shadow-chakra" : "border-white/10 hover:border-white/20",
+        "group overflow-hidden rounded-3xl border bg-ink-900 transition",
+        highlight ? "border-chakra-500 shadow-chakra" : "border-white/10 hover:border-white/25",
       )}
     >
       <button
         type="button"
         onClick={ready ? onPreview : undefined}
-        className={cn("relative block w-full overflow-hidden bg-black", wide ? "aspect-video" : "aspect-[9/16] max-h-[420px]", ready && "cursor-pointer")}
+        className={cn(
+          "relative block w-full overflow-hidden bg-black",
+          wide ? "aspect-video" : "aspect-[9/16] max-h-[560px]",
+          ready && "cursor-pointer",
+        )}
       >
         {item.posterUrl ? (
           <img src={item.posterUrl} alt="" className={cn("h-full w-full object-cover", !ready && "scale-105 opacity-40 blur-sm")} />
@@ -44,58 +48,61 @@ export function GenerationCard({ item, highlight, onPreview, onDownload, onShare
 
         {ready && (
           <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-chakra-500 text-snow opacity-90 shadow-xl transition group-hover:scale-110">
-              <Play className="ml-0.5 h-6 w-6 fill-current" />
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-chakra-500 text-snow opacity-90 shadow-xl transition group-hover:scale-110">
+              <Play className="ml-0.5 h-7 w-7 fill-current" />
             </span>
           </span>
         )}
 
+        {/* 媒体之上的浮层一律用固定「深底 + 浅字」(snow)，不跟随主题翻转，否则浅色主题会变成暗字压暗图 */}
         {running && (
-          <span className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6">
-            <span className="font-display text-5xl tracking-wide">{item.progress}%</span>
-            <span className="h-1 w-full max-w-[200px] overflow-hidden rounded-full bg-white/15">
+          <span className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/65 px-6 backdrop-blur-[2px]">
+            <span className="font-display text-5xl tracking-wide text-snow tabular-nums sm:text-6xl">{item.progress}%</span>
+            <span className="h-1.5 w-full max-w-[240px] overflow-hidden rounded-full bg-snow/30">
               <span className="block h-full rounded-full bg-chakra-500 transition-[width] duration-1000" style={{ width: `${item.progress}%` }} />
             </span>
-            <span className="flex items-center gap-1.5 text-xs text-white/70">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-chakra-400" />
+            <span className="flex items-center gap-2 text-sm text-snow/85">
+              <Loader2 className="h-4 w-4 animate-spin text-snow/70" />
               {item.status === "finalizing" ? "Finishing up" : formatRemaining(item.remainingSeconds)}
             </span>
           </span>
         )}
 
         {item.status === "failed" && (
-          <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-            <AlertTriangle className="h-8 w-8 text-red-400" />
-            <span className="text-sm font-semibold">Render failed</span>
-            <span className="text-xs text-white/60">{item.error || "Your credits were returned."}</span>
+          <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 px-6 text-center">
+            <AlertTriangle className="h-9 w-9 text-red-400" />
+            <span className="text-sm font-semibold text-snow">Render failed</span>
+            <span className="text-xs text-snow/70">{item.error || "Your credits were returned."}</span>
           </span>
         )}
 
         <StatusBadge status={item.status} />
         {ready && item.watermarked && (
-          <span className="absolute right-2 top-2 rounded-full bg-ink-950/70 px-2 py-0.5 text-[10px] text-white/70 backdrop-blur">Watermark</span>
+          <span className="absolute right-2.5 top-2.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-snow/85 backdrop-blur">
+            Watermark
+          </span>
         )}
       </button>
 
-      <div className="flex items-center gap-2 p-3">
+      <div className="flex items-center gap-2 p-4">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{item.title || "Genjutsu video"}</p>
-          <p className="truncate text-[11px] text-white/45">
+          <p className="truncate text-base font-semibold">{item.title || "Genjutsu video"}</p>
+          <p className="truncate text-xs text-white/60">
             {[item.resolution, item.seconds ? `${item.seconds}s` : null, formatAgo(item.createdAt)].filter(Boolean).join(" · ")}
           </p>
         </div>
         {ready && (
           <>
             <IconButton label="Download" onClick={download} disabled={downloading}>
-              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {downloading ? <Loader2 className="h-[18px] w-[18px] animate-spin" /> : <Download className="h-[18px] w-[18px]" />}
             </IconButton>
             <IconButton label="Share" onClick={onShare}>
-              <Share2 className="h-4 w-4" />
+              <Share2 className="h-[18px] w-[18px]" />
             </IconButton>
           </>
         )}
         <IconButton label={running ? "Can be deleted once it finishes" : "Delete"} onClick={onDelete} disabled={running} danger>
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-[18px] w-[18px]" />
         </IconButton>
       </div>
     </article>
@@ -117,12 +124,16 @@ const BADGES: Record<Generation["status"], { label: string; cls: string }> = {
   processing: { label: "Rendering", cls: "bg-chakra-500 text-snow" },
   finalizing: { label: "Finishing", cls: "bg-chakra-500 text-snow" },
   succeeded: { label: "Ready", cls: "bg-emerald-500 text-emerald-950" },
-  failed: { label: "Failed · refunded", cls: "bg-red-500/90 text-white" },
+  failed: { label: "Failed · refunded", cls: "bg-red-500 text-snow" },
 };
 
 function StatusBadge({ status }: { status: Generation["status"] }) {
   const b = BADGES[status];
-  return <span className={cn("absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", b.cls)}>{b.label}</span>;
+  return (
+    <span className={cn("absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider shadow-sm", b.cls)}>
+      {b.label}
+    </span>
+  );
 }
 
 function IconButton({
@@ -146,8 +157,8 @@ function IconButton({
       title={label}
       aria-label={label}
       className={cn(
-        "flex h-9 w-9 flex-none items-center justify-center rounded-full border border-white/10 text-white/70 transition disabled:cursor-not-allowed disabled:opacity-30",
-        danger ? "hover:border-red-400/60 hover:text-red-300" : "hover:border-chakra-400 hover:text-chakra-400",
+        "flex h-10 w-10 flex-none items-center justify-center rounded-full border border-white/15 text-white/70 transition disabled:cursor-not-allowed disabled:opacity-30",
+        danger ? "hover:border-red-400/60 hover:text-red-400" : "hover:border-chakra-400 hover:text-chakra-400",
       )}
     >
       {children}

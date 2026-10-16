@@ -1,5 +1,5 @@
-import { Helmet } from "react-helmet-async";
 import { Link, useParams } from "react-router-dom";
+import { Seo, breadcrumbJsonLd } from "@/components/seo/Seo";
 import { ArrowUpRight } from "lucide-react";
 import { Studio } from "@/components/studio/Studio";
 import { Comparison, FAQ } from "@/components/home/Sections";
@@ -13,10 +13,34 @@ export default function ModePage() {
 
   return (
     <div>
-      <Helmet>
-        <title>{mode.seoTitle} | {SITE.name}</title>
-        <meta name="description" content={mode.seoDescription} />
-      </Helmet>
+      <Seo
+        title={mode.seoTitle}
+        description={mode.seoDescription}
+        path={`/${mode.id}`}
+        image={mode.example.poster}
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: `${SITE.name} ${mode.name}`,
+            applicationCategory: "MultimediaApplication",
+            operatingSystem: "Web",
+            url: `${SITE.url}/${mode.id}`,
+            description: mode.seoDescription,
+            offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "Free trial clip for new accounts" },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "VideoObject",
+            name: `${mode.name} example — ${mode.example.caption}`,
+            description: mode.description,
+            thumbnailUrl: mode.example.poster,
+            contentUrl: mode.example.after,
+            uploadDate: "2026-10-01",
+          },
+          breadcrumbJsonLd([[mode.name, `/${mode.id}`]]),
+        ]}
+      />
 
       <Studio initialMode={mode.id} routeOnSwitch title={mode.seoTitle} subtitle={mode.description} />
 

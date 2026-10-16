@@ -1,15 +1,16 @@
 import { useCallback, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/seo/Seo";
 import { Link, useSearchParams } from "react-router-dom";
 import { Clapperboard, Coins, Loader2, Plus } from "lucide-react";
 import { GenerationCard } from "@/components/library/GenerationCard";
 import { PreviewModal } from "@/components/library/PreviewModal";
+import { ShareSheet } from "@/components/library/ShareSheet";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useGenerations } from "@/hooks/useGenerations";
 import { SITE } from "@/config/site";
 import type { Generation } from "@/lib/kinkora";
-import { downloadVideo, shareLink, shareUrl } from "@/lib/media";
+import { downloadVideo } from "@/lib/media";
 
 export default function Library() {
   const { user, ready, credits, billing, openAuth, refreshCredits } = useAuth();
@@ -17,6 +18,7 @@ export default function Library() {
   const [params] = useSearchParams();
   const highlight = params.get("new");
   const [preview, setPreview] = useState<Generation | null>(null);
+  const [sharing, setSharing] = useState<Generation | null>(null);
   const { items, loading, error, reload, remove } = useGenerations(!!user, refreshCredits);
 
   const running = items.filter((g) => g.status === "processing" || g.status === "finalizing").length;
@@ -24,18 +26,6 @@ export default function Library() {
   const download = useCallback(async (g: Generation) => {
     if (g.videoUrl) await downloadVideo(g.videoUrl, `genjutsu-${g.id.slice(0, 8)}.mp4`);
   }, []);
-
-  const share = useCallback(
-    async (g: Generation) => {
-      try {
-        const how = await shareLink(shareUrl(g.shareId), `${g.title || "My Genjutsu video"} — ${SITE.name}`);
-        if (how === "copied") toast("Share link copied", "success");
-      } catch {
-        toast("Couldn't copy the link", "error");
-      }
-    },
-    [toast],
-  );
 
   const del = useCallback(
     async (g: Generation) => {
@@ -52,10 +42,7 @@ export default function Library() {
 
   return (
     <section className="mx-auto max-w-[1320px] px-4 pb-20 pt-24 sm:px-6 sm:pt-28">
-      <Helmet>
-        <title>My videos — {SITE.name}</title>
-        <meta name="robots" content="noindex" />
-      </Helmet>
+      <Seo title={`My videos — ${SITE.name}`} description="Your Genjutsu AI videos." path="/library" noindex />
 
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -80,7 +67,7 @@ export default function Library() {
       </div>
 
       {!billing.subscription && user && items.some((g) => g.watermarked) && (
-        <p className="mb-5 rounded-2xl border border-chakra-500/25 bg-chakra-500/10 px-4 py-3 text-xs text-white/70">
+        <p className="mb-5 rounded-2xl border border-chakra-500/25 bg-chakra-500/10 px-4 py-3 text-xs text-white/80">
           Free renders carry a small watermark.{" "}
           <Link to="/pricing" className="font-semibold text-chakra-400 hover:underline">
             Pick a plan
@@ -100,7 +87,7 @@ export default function Library() {
       ) : !items.length ? (
         <Empty title="No videos yet" action={<Link to="/#studio" className="btn-primary">Make your first video</Link>} />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
           {items.map((g) => (
             <GenerationCard
               key={g.id}
@@ -108,7 +95,7 @@ export default function Library() {
               highlight={g.id === highlight}
               onPreview={() => setPreview(g)}
               onDownload={() => download(g)}
-              onShare={() => share(g)}
+              onShare={() => setSharing(g)}
               onDelete={() => del(g)}
             />
           ))}
@@ -116,8 +103,18 @@ export default function Library() {
       )}
 
       {preview && (
-        <PreviewModal item={preview} onClose={() => setPreview(null)} onDownload={() => download(preview)} onShare={() => share(preview)} />
+        <PreviewModal
+          item={preview}
+          onClose={() => setPreview(null)}
+          onDownload={() => download(preview)}
+          onShare={() => {
+            setSharing(preview);
+            setPreview(null);
+          }}
+        />
       )}
+
+      {sharing && <ShareSheet item={sharing} onClose={() => setSharing(null)} />}
     </section>
   );
 }

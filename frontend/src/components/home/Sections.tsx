@@ -213,7 +213,7 @@ export const FAQS = [
   { q: "How is it different from Kling Motion Control?", a: "Kling Motion Control animates a still photo with the movement of a reference clip. Genjutsu AI’s motion transfer and swap modes keep the original clip’s camera path and timing, and can also change just the outfit, an object, the background or the art style." },
   { q: "Can I make the Hotel Lobby AI trend here?", a: "The Hotel Lobby orange-booth duet has its own dedicated two-photo generator, our sister site Hotel Lobby AI (hotellobbysi.app), with the original song baked in." },
   { q: "How long can my video be?", a: "Every mode takes source clips from 2 to 15 seconds. Longer footage? Split it into 15-second takes and render them one by one." },
-  { q: "Does the result have sound?", a: "Yes. By default the model generates sound that matches the edited scene. In edit modes you can also keep your clip’s original audio instead." },
+  { q: "Does the result have sound?", a: "Yes. Clips that ship with a soundtrack get music added automatically, and footage you upload keeps its original audio. Every mode also lets you export with no audio at all." },
   { q: "Does it work with anime and 3D characters?", a: "Yes. The engine is style-preserving: photoreal stays photoreal, 3D stays 3D and anime keeps its line art and cel shading." },
   {
     q: "How much does it cost?",

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { Mode } from "@/config/site";
 import { kinkora } from "@/lib/kinkora";
+import { buildGenerationMeta } from "@/lib/generationMeta";
 
 export type Phase = "idle" | "uploading" | "queued" | "error";
 
@@ -19,6 +20,8 @@ export interface StudioJob {
   options: Record<string, string>;
   seconds: number;
   demoOutput?: string;
+  /** 从模板库选的模板（带上 slug 和配乐，后端 finalize 要用） */
+  template?: { slug: string; soundtrack: string | null } | null;
 }
 
 const isRemote = (url?: string) => !!url && !url.startsWith("blob:");
@@ -39,26 +42,28 @@ export function useStudioGeneration() {
     return kinkora.upload(asset.file, kind);
   };
 
-  const generate = useCallback(async ({ mode, video, images, prompt, options, seconds, demoOutput }: StudioJob): Promise<string> => {
+  const generate = useCallback(async ({ mode, video, images, prompt, options, seconds, demoOutput, template }: StudioJob): Promise<string> => {
     setError(null);
     setPhase("uploading");
     try {
       const [videoUrl, ...imageUrls] = await Promise.all([resolve(video, "videos"), ...images.map((i) => resolve(i, "images"))]);
       setPhase("queued");
 
+      // 只有「模板配乐」策略才把配乐地址交给后端；Silent / 原声 都不传
+      const meta = buildGenerationMeta({
+        mode,
+        seconds,
+        options,
+        poster: isRemote(video.poster) ? video.poster : undefined,
+        thumbs: imageUrls.filter(isRemote).slice(0, 2),
+        template,
+      });
+
       const id = await kinkora.submitVideo({
         providerId: mode.providerId,
         modelId: mode.modelId,
         params: mode.buildParams({ video: videoUrl, images: imageUrls, prompt, options, seconds }),
-        meta: {
-          mode: mode.id,
-          title: mode.name,
-          seconds,
-          resolution: options.resolution,
-          aspect: options.aspect,
-          poster: isRemote(video.poster) ? video.poster : undefined,
-          thumbs: imageUrls.filter(isRemote).slice(0, 2),
-        },
+        meta,
         demoOutput,
       });
       setPhase("idle");

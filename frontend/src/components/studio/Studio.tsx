@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, Check, Coins, LayoutGrid, Loader2, Play, Wand2 } from "lucide-react";
+import { AlertTriangle, Check, Coins, LayoutGrid, Loader2, Music2, Play, Volume2, VolumeX, Wand2 } from "lucide-react";
 import { MODES, CONFIG, FREE_TRIAL, billableSeconds, estimateCredits, getMode, type Mode, type ModeId } from "@/config/site";
-import type { VideoTemplate } from "@/config/templates";
+import { defaultSoundFor, soundChoicesFor, type VideoTemplate } from "@/config/templates";
 import { useStudioGeneration, type Asset, type Phase } from "@/hooks/useStudioGeneration";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -34,6 +34,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   const [prompt, setPrompt] = useState("");
   const [preset, setPreset] = useState(0);
   const [options, setOptions] = useState<Record<string, string>>(defaultsOf(initialMode));
+  const [template, setTemplate] = useState<VideoTemplate | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
   const { phase, error, generate, reset } = useStudioGeneration();
@@ -53,6 +54,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   useEffect(() => {
     setOptions(defaultsOf(modeId));
     setVideo(null);
+    setTemplate(null);
     setImages([]);
     setPrompt("");
     setPreset(0);
@@ -86,6 +88,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   const loadExample = () => {
     if (busy) return;
     reset();
+    setTemplate(null);
     const ex = mode.example;
     setVideo(asset(ex.before, ex.beforePoster));
     setImages(ex.images.map((src) => asset(src)));
@@ -116,6 +119,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
         options: { ...options, aspect },
         seconds: billableSeconds(mode, duration),
         demoOutput: mode.example.after,
+        template,
       });
       if (CONFIG.demoMode) spendDemoCredits(cost);
       refreshCredits();
@@ -146,7 +150,19 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
     if (busy) return;
     reset();
     setVideo(asset(t.video, t.poster));
+    setTemplate(t);
+    // 声音选项跟着模板走：静音模板默认「模板配乐」，有原声的默认「保留原声」
+    setOptions((s) => ({ ...s, sound: defaultSoundFor(t) }));
     setLibraryOpen(false);
+  };
+
+  /** 用户自己换视频后，模板选择失效（配乐不该跟到无关的片段上） */
+  const changeVideo = (v: Asset | null) => {
+    setVideo(v);
+    if (template) {
+      setTemplate(null);
+      setOptions((s) => ({ ...s, sound: s.sound === "bgm" ? "keep" : s.sound }));
+    }
   };
 
   const imageBlock = mode.images.max > 0 && (
@@ -158,7 +174,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
       hint={mode.video.hint}
       value={video}
       duration={duration}
-      onChange={setVideo}
+      onChange={changeVideo}
       disabled={busy}
       extra={
         <button
@@ -175,7 +191,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   const sideBySide = mode.images.max === 1;
 
   return (
-    <section id="studio" className="mx-auto max-w-[1600px] scroll-mt-20 px-3 pt-24 sm:px-5 sm:pt-28 lg:px-6">
+    <section id="studio" className="mx-auto max-w-[1800px] scroll-mt-20 px-3 pt-24 sm:px-5 sm:pt-28 lg:px-6">
       <div className="mb-6 flex flex-col gap-3 sm:mb-8 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="font-display text-3xl font-black leading-tight sm:text-5xl">{title}</h1>
@@ -290,20 +306,25 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
 
             {mode.options.length > 0 && (
               <div className={cn("grid gap-x-4 gap-y-3", mode.options.length > 1 && "sm:grid-cols-2")}>
-                {mode.options.map((o) => (
-                  <div key={o.key}>
-                    <p className="mb-1.5 text-xs text-white/50">{o.label}</p>
-                    <Segmented
-                      value={options[o.key]}
-                      disabled={busy}
-                      onChange={(v) => setOption(o.key, v)}
-                      options={o.choices.map((c) => ({
-                        ...c,
-                        locked: o.key === "resolution" && c.value !== "480p" && !subscribed && !CONFIG.demoMode,
-                      }))}
-                    />
-                  </div>
-                ))}
+                {mode.options.map((o) => {
+                  // 声音选项随所选模板变化：无音轨模板只给「模板配乐 / 静音」
+                  const choices = o.key === "sound" ? soundChoicesFor(template, o.choices) : o.choices;
+                  const value = choices.some((c) => c.value === options[o.key]) ? options[o.key] : choices[0].value;
+                  return (
+                    <div key={o.key}>
+                      <p className="mb-1.5 text-xs text-white/50">{o.label}</p>
+                      <Segmented
+                        value={value}
+                        disabled={busy}
+                        onChange={(v) => setOption(o.key, v)}
+                        options={choices.map((c) => ({
+                          ...c,
+                          locked: o.key === "resolution" && c.value !== "480p" && !subscribed && !CONFIG.demoMode,
+                        }))}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -342,6 +363,8 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
             error={error}
             source={video?.previewUrl}
             character={images[0]?.previewUrl}
+            template={template}
+            sound={options.sound}
             onReset={reset}
           />
         </div>
@@ -363,17 +386,36 @@ interface CanvasProps {
   error: string | null;
   source?: string;
   character?: string;
+  template?: VideoTemplate | null;
+  sound?: string;
   onReset: () => void;
 }
 
-function Canvas({ mode, phase, error, source, character, onReset }: CanvasProps) {
+function Canvas({ mode, phase, error, source, character, template, sound, onReset }: CanvasProps) {
   const busy = phase === "uploading" || phase === "queued";
   const order = STEPS.findIndex((s) => s.key === phase);
   const ex = mode.example;
 
+  // 徽章反映"这一单实际会怎么出声"，而不是模板固有属性
+  const badge = !template
+    ? null
+    : sound === "mute"
+      ? { Icon: VolumeX, text: "Silent", cls: "bg-white/10 text-white/70" }
+      : template.soundtrack
+        ? { Icon: Music2, text: "Soundtrack", cls: "bg-chakra-500/20 text-chakra-200" }
+        : template.audio
+          ? { Icon: Volume2, text: "With audio", cls: "bg-white/10 text-white/70" }
+          : { Icon: VolumeX, text: "No audio", cls: "bg-amber-500/15 text-amber-200" };
+
   return (
     <div className="order-first flex min-w-0 flex-col lg:order-none lg:sticky lg:top-24 lg:self-start">
-      <div className="relative aspect-video overflow-hidden rounded-[20px] bg-black lg:aspect-[4/3.3]">
+      <div
+        className={cn(
+          "relative aspect-video overflow-hidden rounded-[20px] bg-black lg:aspect-[4/3.3] transition",
+          // 选中模板时，右侧大屏跟着高亮（加粗 ring + 外发光，深色背景下能看清）
+          template && "ring-[3px] ring-chakra-400 shadow-glow",
+        )}
+      >
         {source ? (
           <video key={source} src={source} className="absolute inset-0 h-full w-full object-contain" autoPlay muted loop playsInline />
         ) : (
@@ -391,6 +433,16 @@ function Canvas({ mode, phase, error, source, character, onReset }: CanvasProps)
               <b className="text-white">Example ·</b> {ex.caption}. Drag the handle to compare.
             </p>
           </>
+        )}
+
+        {/* 所选模板 + 这一单的声音状态，明确告诉用户"会不会有声音" */}
+        {badge && (
+          <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-xl border border-chakra-500/50 bg-ink-950/85 px-2.5 py-1.5 backdrop-blur">
+            <span className="truncate text-xs font-semibold text-white">{template!.title}</span>
+            <span className={cn("flex flex-none items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold", badge.cls)}>
+              <badge.Icon className="h-3 w-3" /> {badge.text}
+            </span>
+          </div>
         )}
 
         {character && (

@@ -25,13 +25,19 @@ export const COINS_PER_CREDIT = 10;
 const ASSETS = ((env.VITE_ASSETS_BASE_URL as string | undefined) || "https://storage.genjutsusi.app").replace(/\/$/, "");
 const D = `${ASSETS}/demo`;
 
+/**
+ * 模板库 Classics（featured）用的片子。
+ * 直接用首页 demo 的成片（after）：成片本身带音轨、画质和效果都验证过，
+ * 比手写的 audio:false 占位可靠。参数是 ffprobe 实测值，不要凭猜。
+ */
 export const MOTION_LIBRARY = [
-  { id: "karate", name: "Dojo fight", url: `${D}/mt-before.mp4`, poster: `${D}/mt-before.jpg` },
-  { id: "dance", name: "Loft dance", url: `${D}/cs-before.mp4`, poster: `${D}/cs-before.jpg` },
-  { id: "group", name: "Group routine", url: `${D}/group-before.mp4`, poster: `${D}/group-before.jpg` },
-  { id: "walk", name: "Gallery run", url: `${D}/hall-before.mp4`, poster: `${D}/hall-before.jpg` },
-  { id: "skate", name: "Snow skate", url: `${D}/snow-before.mp4`, poster: `${D}/snow-before.jpg` },
-  { id: "skydive", name: "Skydive", url: `${D}/skydive.mp4`, poster: `${D}/skydive.jpg` },
+  { id: "karate", name: "Dojo fight", url: `${D}/mt-after.mp4`, poster: `${D}/mt-after.jpg`, seconds: 10.03, width: 1280, height: 720, audio: true },
+  { id: "dance", name: "Loft dance", url: `${D}/cs-after.mp4`, poster: `${D}/cs-after.jpg`, seconds: 8.03, width: 1108, height: 832, audio: true },
+  { id: "costume", name: "Costume swap", url: `${D}/os-after.mp4`, poster: `${D}/os-after.jpg`, seconds: 10.03, width: 1280, height: 720, audio: true },
+  { id: "typewriter", name: "Laptop to typewriter", url: `${D}/obj-after.mp4`, poster: `${D}/obj-after.jpg`, seconds: 10.03, width: 1280, height: 720, audio: true },
+  { id: "tokyo", name: "Neon Tokyo", url: `${D}/hall-after.mp4`, poster: `${D}/hall-after.jpg`, seconds: 8.03, width: 1280, height: 720, audio: true },
+  { id: "anime", name: "Anime skate", url: `${D}/snow-after.mp4`, poster: `${D}/snow-after.jpg`, seconds: 8.03, width: 1280, height: 720, audio: true },
+  { id: "faceswap", name: "Face swap", url: `${D}/fs-after.mp4`, poster: `${D}/fs-after.jpg`, seconds: 7.04, width: 1280, height: 720, audio: true },
 ];
 
 export interface ModeExample {
@@ -127,20 +133,10 @@ const RESOLUTION_OPTION: ModeOption = {
 const SOUND_OPTION: ModeOption = {
   key: "sound",
   label: "Sound",
-  default: "ai",
+  default: "keep",
   choices: [
-    { value: "ai", label: "AI sound", sub: "Matches the edit" },
-    { value: "keep", label: "Original", sub: "Keep source audio" },
-  ],
-};
-
-const MOTION_SOUND_OPTION: ModeOption = {
-  key: "sound",
-  label: "Sound",
-  default: "ai",
-  choices: [
-    { value: "ai", label: "AI sound" },
-    { value: "mute", label: "Silent" },
+    { value: "keep", label: "Original", sub: "Source audio" },
+    { value: "mute", label: "Silent", sub: "No audio" },
   ],
 };
 
@@ -154,7 +150,11 @@ const editParams = (prompt: string, { video, images, options }: ModeInput) => ({
   video,
   reference_images: images,
   resolution: options.resolution,
-  generate_audio: options.sound !== "keep",
+  // 声音只有两种：保留源音轨（默认）/ 静音。不再让模型生成音频
+  // —— 实测 wan-3.0 的 generate_audio=true 只是透传源音轨，
+  // 没在生成，所以 AI sound 已下线；静音靠 mute_audio 让后端剥音轨。
+  generate_audio: false,
+  mute_audio: options.sound === "mute",
 });
 
 const STYLE_PRESETS = [
@@ -188,7 +188,7 @@ export const MODES: Mode[] = [
     video: { label: "Motion clip", hint: "2–15s · steady camera" },
     images: { label: "Character", hint: "Full body, clear pose", min: 1, max: 1 },
     prompt: { label: "Scene direction", placeholder: "Optional — e.g. neon rooftop at night, light rain" },
-    options: [RESOLUTION_OPTION, MOTION_SOUND_OPTION],
+    options: [RESOLUTION_OPTION, SOUND_OPTION],
     minSeconds: 2,
     maxSeconds: 15,
     etaSeconds: 600,
@@ -206,7 +206,9 @@ export const MODES: Mode[] = [
       duration: Math.max(2, Math.ceil(seconds)),
       aspect_ratio: options.aspect ?? "16:9",
       resolution: options.resolution,
-      generate_audio: options.sound !== "mute",
+      // 同 editParams：不请求模型生成音频，Original 就是保留源音轨
+      generate_audio: false,
+      mute_audio: options.sound === "mute",
     }),
   },
   {

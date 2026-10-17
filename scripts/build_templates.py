@@ -12,6 +12,22 @@ UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/
 MAX_SECONDS, MIN_SECONDS = 15, 2
 PEOPLE = ["character-swap", "motion-transfer", "face-swap", "outfit-swap", "background-swap", "restyle"]
 
+# 这些模板画面里有明确可替换的产品/道具/载具，额外开放 object-swap。
+# 最初 PEOPLE 里没有 object-swap，导致「Object Swap」模式只剩 1 个模板（7 个含 featured）。
+# 改前端 templates.json 后必须同步这里，否则重新生成会被覆盖回去。
+OBJECT_EXTRA = {
+    "supercar-showcase-orbit", "car-drive", "motor-ride", "transform", "exploded-view",
+    "plate-check", "eating", "eating-zoom", "frost", "money-rain", "clothes-rain",
+    "animals-on-shoulder", "dino-crisis",
+}
+
+
+def modes_for(slug, obj=False):
+    if obj:
+        return ["object-swap", "background-swap", "restyle"]
+    return PEOPLE + (["object-swap"] if slug in OBJECT_EXTRA else [])
+
+
 
 def unq(s):
     try:
@@ -31,7 +47,7 @@ def collect():
         obj = p["mode"] == "replace-objects"
         items.append(dict(
             slug=slugify(p["name"]), title=p["name"], description=p["description"], category="trending",
-            src=p["source"], poster=p["poster"], modes=["object-swap", "background-swap", "restyle"] if obj else PEOPLE,
+            src=p["source"], poster=p["poster"], modes=modes_for(slugify(p["name"]), obj),
         ))
     # 2. Viral hub effects (all scraped pages)
     pat = re.compile(
@@ -45,7 +61,7 @@ def collect():
             mm = main.search(tail)
             items.append(dict(
                 slug=m[1], title=unq(m[2]), description=unq(m[3]), category="effects",
-                src=mm[1] if mm else m[4], poster=m[5], modes=PEOPLE,
+                src=mm[1] if mm else m[4], poster=m[5], modes=modes_for(m[1]),
             ))
     # 3. Motions (camera / action showcase clips with mp4 sources)
     for i in json.load(open(f"{ROOT}/motions.json"))["items"]:
@@ -55,7 +71,7 @@ def collect():
         cat = "camera" if any("camera" in c for c in cats) else "action"
         items.append(dict(
             slug=slugify(i["name"]), title=i["name"], description="", category=cat,
-            src=i["media"]["url"], poster=i["media"].get("thumbnail_url"), modes=PEOPLE,
+            src=i["media"]["url"], poster=i["media"].get("thumbnail_url"), modes=modes_for(slugify(i["name"])),
         ))
     # 4. Katana presets (stylized edits)
     for i in json.load(open(f"{ROOT}/katana1.json"))["items"]:
@@ -64,7 +80,7 @@ def collect():
             continue
         items.append(dict(
             slug=i["slug"], title=i["title"], description=i.get("description", ""), category="edits",
-            src=v, poster=(i.get("thumbnail_media") or {}).get("url"), modes=PEOPLE,
+            src=v, poster=(i.get("thumbnail_media") or {}).get("url"), modes=modes_for(i["slug"]),
         ))
     seen_src, seen_title, seen_slug, out = set(), set(), set(), []
     for it in items:

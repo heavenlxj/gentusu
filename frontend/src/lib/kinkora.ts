@@ -20,6 +20,12 @@ export interface GenerationMeta {
   aspect?: string;
   poster?: string;
   thumbs?: string[];
+  /** 选中的模板 slug（后端据此挑配乐） */
+  template?: string;
+  /** 该模板预生成的配乐地址（无音轨模板才有） */
+  soundtrack?: string;
+  /** 成片声音策略：bgm=叠模板配乐 / keep / ai / mute */
+  sound?: string;
 }
 
 export type GenerationStatus = "processing" | "finalizing" | "succeeded" | "failed";

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, LayoutGrid, Loader2, Play, Search, Volume2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, LayoutGrid, Loader2, Music2, Pause, Play, Search, Volume2, VolumeX, X } from "lucide-react";
 import { TEMPLATE_CATEGORIES, loadTemplates, type VideoTemplate } from "@/config/templates";
 import type { Mode, ModeId } from "@/config/site";
 import { cn } from "@/lib/cn";
@@ -50,7 +50,7 @@ export function TemplateLauncher({ modeId, disabled, onOpen }: LauncherProps) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[15px] font-bold">
-          Browse {list ? `${list.length}+ ` : ""}video templates
+          Browse {list ? `${list.length} ` : ""}video templates
         </span>
         <span className="block truncate text-xs text-white/55">No clip? Pick a viral effect, action shot or aura edit in one click</span>
       </span>
@@ -70,13 +70,24 @@ interface ModalProps {
 
 export function TemplateModal({ mode, selected, onPick, onClose }: ModalProps) {
   const forMode = useModeTemplates(mode.id);
-  const [category, setCategory] = useState<string>(TEMPLATE_CATEGORIES[0].id);
+  const [category, setCategory] = useState<string>("");
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(PAGE);
   const [preview, setPreview] = useState<VideoTemplate | null>(null);
 
   const categories = useMemo(() => TEMPLATE_CATEGORIES.filter((c) => (forMode ?? []).some((t) => t.category === c.id)), [forMode]);
-  const active = categories.some((c) => c.id === category) ? category : categories[0]?.id;
+  // 默认落在该模式内容最多的分类：object-swap 在 Trending 只有 2 个，落进去像空库
+  const busiest = useMemo(() => {
+    if (!forMode?.length) return null;
+    const n = new Map<string, number>();
+    for (const t of forMode) n.set(t.category, (n.get(t.category) ?? 0) + 1);
+    return [...n.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  }, [forMode]);
+  const active = categories.some((c) => c.id === category)
+    ? category
+    : categories.some((c) => c.id === busiest)
+      ? busiest
+      : categories[0]?.id;
   const q = query.trim().toLowerCase();
   const list = useMemo(
     () => (forMode ?? []).filter((t) => (q ? `${t.title} ${t.description}`.toLowerCase().includes(q) : t.category === active)),
@@ -195,12 +206,29 @@ function TemplateCard({ t, active, onPreview, onPick }: { t: VideoTemplate; acti
       <button type="button" onClick={onPreview} className="relative aspect-[3/4] w-full overflow-hidden bg-ink-800" aria-label={`Preview ${t.title}`}>
         <img src={t.poster} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
         {hover && <video src={t.video} className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline />}
-        <span className="absolute left-2 top-2 flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[10px] text-snow/90 backdrop-blur">
-          {t.seconds > 0 && `${Math.round(t.seconds)}s`}
-          {t.audio && <Volume2 className="h-3 w-3" />}
+        <span className="absolute left-2 top-2 flex flex-col items-start gap-1">
+          {t.seconds > 0 && (
+            <span className="flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[10px] text-snow/90 backdrop-blur">
+              {Math.round(t.seconds)}s
+            </span>
+          )}
+          {/* 声音状态必须一眼可见：有配乐 / 自带原声 / 无声 */}
+          {t.soundtrack ? (
+            <span className="flex items-center gap-1 rounded-md bg-chakra-500/90 px-1.5 py-0.5 text-[10px] font-semibold text-snow backdrop-blur">
+              <Music2 className="h-3 w-3" /> Soundtrack
+            </span>
+          ) : t.audio ? (
+            <span className="flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-snow/85 backdrop-blur">
+              <Volume2 className="h-3 w-3" /> Audio
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 rounded-md bg-amber-400/95 px-1.5 py-0.5 text-[10px] font-bold text-ink-950 backdrop-blur">
+              <VolumeX className="h-3 w-3" /> No audio
+            </span>
+          )}
         </span>
         {active && (
-          <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-chakra-500 px-2 py-0.5 text-[10px] font-semibold text-snow">
+          <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-chakra-500 px-2 py-0.5 text-[10px] font-semibold text-snow shadow-lg">
             <Check className="h-3 w-3" /> In use
           </span>
         )}
@@ -227,6 +255,21 @@ function TemplateCard({ t, active, onPreview, onPick }: { t: VideoTemplate; acti
 }
 
 function TemplatePreview({ t, active, onBack, onPick }: { t: VideoTemplate; active: boolean; onBack: () => void; onPick: () => void }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const toggleSound = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (playing) {
+      el.pause();
+      setPlaying(false);
+    } else {
+      el.currentTime = 0;
+      el.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    }
+  };
+
   return (
     <div className="absolute inset-0 z-10 flex flex-col bg-ink-900/95 backdrop-blur-md">
       <div className="flex flex-none items-center px-4 pt-4 sm:px-6 sm:pt-5">
@@ -256,8 +299,42 @@ function TemplatePreview({ t, active, onBack, onPick }: { t: VideoTemplate; acti
           <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/60">
             {t.seconds > 0 && <span className="rounded-full bg-white/5 px-2.5 py-1">{t.seconds.toFixed(1)}s</span>}
             {t.width > 0 && <span className="rounded-full bg-white/5 px-2.5 py-1">{t.width}×{t.height}</span>}
-            <span className="rounded-full bg-white/5 px-2.5 py-1">{t.audio ? "With audio" : "No audio"}</span>
+            {t.soundtrack ? (
+              <span className="flex items-center gap-1 rounded-full bg-chakra-500/20 px-2.5 py-1 font-semibold text-chakra-200">
+                <Music2 className="h-3 w-3" /> Soundtrack
+              </span>
+            ) : t.audio ? (
+              <span className="flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 font-semibold text-white/80">
+                <Volume2 className="h-3 w-3" /> With audio
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-1 font-semibold text-amber-200">
+                <VolumeX className="h-3 w-3" /> No audio
+              </span>
+            )}
           </div>
+
+          {t.soundtrack ? (
+            <>
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-chakra-500/40 bg-chakra-500/10 py-2.5 text-sm font-semibold text-chakra-200 transition hover:bg-chakra-500/20"
+              >
+                {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                {playing ? "Pause soundtrack" : "Hear the soundtrack"}
+              </button>
+              <audio ref={audioRef} src={t.soundtrack} loop onEnded={() => setPlaying(false)} />
+              <p className="mt-2 text-[11px] leading-relaxed text-white/45">
+                This clip is silent — we add this soundtrack when you generate. You can also pick Silent instead.
+              </p>
+            </>
+          ) : !t.audio ? (
+            <p className="mt-4 rounded-xl bg-amber-400/10 px-3 py-2.5 text-[11px] leading-relaxed text-amber-200/90">
+              This clip has no audio. Your result will be silent unless you add sound.
+            </p>
+          ) : null}
+
           <button type="button" onClick={onPick} className="btn-primary mt-6 w-full py-3.5">
             {active ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />} {active ? "In use — back to studio" : "Use this template"}
           </button>

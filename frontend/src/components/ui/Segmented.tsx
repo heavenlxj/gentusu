@@ -28,16 +28,17 @@ export function Segmented<T extends string | number>({ value, options, onChange,
             disabled={disabled || o.disabled}
             onClick={() => onChange(o.value)}
             className={cn(
-              "relative flex flex-col items-center justify-center rounded-xl px-2 py-2 text-sm font-semibold transition",
+              // 固定高度，避免某一列带副标题、某列不带时整行被拉高
+              "relative flex h-16 flex-col items-center justify-center rounded-xl px-1.5 py-2 text-sm font-semibold transition",
               active ? "bg-chakra-500 text-snow shadow-[0_6px_24px_-8px_rgb(var(--chakra-500)/.75)]" : "text-white/70 hover:bg-white/5 hover:text-white",
               (disabled || o.disabled) && "cursor-not-allowed opacity-35 hover:bg-transparent",
             )}
           >
-            <span className="flex items-center gap-1">
+            <span className="flex max-w-full items-center gap-1 truncate">
               {o.label}
-              {o.locked && <Lock className="h-3 w-3 opacity-70" />}
+              {o.locked && <Lock className="h-3 w-3 flex-none opacity-70" />}
             </span>
-            {o.sub && <span className={cn("text-[10px] font-medium", active ? "text-snow/75" : "text-white/45")}>{o.sub}</span>}
+            {o.sub && <span className={cn("w-full truncate text-center text-[10px] font-medium", active ? "text-snow/75" : "text-white/45")}>{o.sub}</span>}
           </button>
         );
       })}

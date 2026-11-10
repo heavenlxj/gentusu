@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { CalendarClock, Check, Gift, Loader2, Lock, Package, Zap } from "lucide-react";
+import { CalendarClock, Check, Gift, Loader2, Package, Zap } from "lucide-react";
 import {
   CONFIG,
   CREDIT_PACKS,
   FREE_TRIAL,
   MODES,
+  PACK_VIDEO_SECONDS,
   PLANS,
   YEARLY_DISCOUNT,
   creditsPerSecond,
+  packVideos,
   planFromLookup,
   planLookup,
   type BillingInterval,
@@ -27,9 +29,8 @@ const RESOLUTIONS: [Resolution, string][] = [
   ["720p", "HD"],
   ["1080p", "Full HD"],
 ];
-/** 一条 5s 720p 视频的积分，用来把额度换算成「几条视频」 */
-const CLIP_SECONDS = 5;
-const CLIP_720 = Math.ceil(creditsPerSecond("720p") * CLIP_SECONDS);
+/** 一条 10s 720p 视频的积分，用来把额度换算成「几条视频」 */
+const CLIP_720 = Math.ceil(creditsPerSecond("720p") * PACK_VIDEO_SECONDS);
 
 export function Pricing({ compact = false }: { compact?: boolean }) {
   const [interval, setBillingInterval] = useState<BillingInterval>("year");
@@ -37,7 +38,6 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
   const { user, billing, openAuth, refreshCredits } = useAuth();
   const toast = useToast();
   const current = planFromLookup(billing.subscription?.lookup);
-  const subscribed = billing.subscription?.status === "active";
 
   const run = async (key: string, fn: () => Promise<void>) => {
     if (!user) return openAuth();
@@ -74,20 +74,14 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
     });
   };
 
-  const buyPack = (pack: CreditPack) => {
-    if (user && !subscribed && !CONFIG.demoMode) {
-      toast("Credit packs are for subscribers — pick a plan first", "info");
-      return document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" });
-    }
-    openCheckout(pack.lookup, `${pack.credits} credits`);
-  };
+  const buyPack = (pack: CreditPack) => openCheckout(pack.lookup, `${pack.credits} credits`);
 
   return (
     <section id="pricing" className="mx-auto max-w-[1320px] scroll-mt-24 px-4 pt-28 sm:px-6">
       <p className="eyebrow text-center">Pricing</p>
-      <h2 className="mt-3 text-center font-display text-4xl font-black sm:text-5xl">Pick your power level.</h2>
+      <h2 className="mt-3 text-center font-display text-4xl font-black sm:text-5xl">One clip. One payment.</h2>
       <p className="mx-auto mt-4 max-w-xl text-center text-white/60">
-        All {MODES.length} modes and HD on every plan, fresh credits every month, failed renders refunded automatically. Need more? Subscribers can top up with packs that never expire.
+        Start with a credit pack — no subscription, credits never expire, all {MODES.length} modes included. Editing every week? Subscribe below for monthly credits at a lower unit price.
       </p>
 
       {billing.subscription && current && (
@@ -112,132 +106,147 @@ export function Pricing({ compact = false }: { compact?: boolean }) {
         />
       )}
 
-      <div id="plans" className="mt-10 flex scroll-mt-28 justify-center">
-        <div className="flex rounded-full border border-white/10 bg-white/[0.04] p-1 text-sm font-semibold">
-          {(["month", "year"] as const).map((i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setBillingInterval(i)}
-              className={cn("rounded-full px-5 py-2 transition", interval === i ? "bg-chakra-500 text-snow" : "text-white/65 hover:text-white")}
-            >
-              {i === "month" ? "Monthly" : "Yearly"}
-              {i === "year" && <span className={cn("ml-2 text-xs", interval === i ? "text-white/75" : "text-chakra-300")}>−{YEARLY_DISCOUNT * 100}%</span>}
-            </button>
-          ))}
+      <div id="packs" className="mt-10 scroll-mt-28">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="eyebrow">Credit packs</p>
+            <h3 className="mt-2 font-display text-3xl font-black">Buy only what you need</h3>
+          </div>
+          <p className="flex items-center gap-2 text-sm text-white/50">
+            <Package className="h-4 w-4 flex-none text-chakra-400" /> No subscription · credits never expire
+          </p>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          {CREDIT_PACKS.map((pack) => {
+            const videos = packVideos(pack);
+            const at480 = packVideos(pack, "480p");
+            return (
+              <button
+                key={pack.lookup}
+                type="button"
+                onClick={() => buyPack(pack)}
+                disabled={loading === pack.lookup}
+                className="group relative flex flex-col rounded-[24px] border border-white/15 bg-white/[0.03] p-6 text-left transition hover:-translate-y-0.5 hover:border-chakra-400 hover:bg-white/[0.05] disabled:opacity-70"
+              >
+                <span className="flex items-start justify-between gap-3">
+                  <span>
+                    <span className="block font-display text-3xl font-black leading-none">{videos} video{videos === 1 ? "" : "s"}</span>
+                    <span className="mt-2 block text-sm text-white/50">{pack.credits} credits · never expire</span>
+                  </span>
+                  {videos === 5 && (
+                    <span className="flex-none rounded-full bg-chakra-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-snow">Best value</span>
+                  )}
+                </span>
+                <span className="mt-5 block font-display text-4xl font-black">{usd(pack.price)}</span>
+                <span className="mt-1 block text-xs text-white/45">~{usd(pack.price / videos)} per video</span>
+                <span className="mt-4 block text-xs leading-relaxed text-white/55">
+                  {videos} × {PACK_VIDEO_SECONDS}s at 720p HD, or {at480} at 480p. Works with all {MODES.length} modes.
+                </span>
+                <span className="mt-5 flex items-center gap-2 text-sm font-semibold text-chakra-300 group-hover:text-chakra-200">
+                  {loading === pack.lookup ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buy pack →"}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        {PLANS.map((p) => {
-          const lookup = planLookup(p.id, interval);
-          const isCurrent = current?.plan.id === p.id && current.interval === interval;
-          const canSwitch =
-            !current ||
-            (p.rank > current.plan.rank && !(current.interval === "year" && interval === "month")) ||
-            (p.rank === current.plan.rank && current.interval === "month" && interval === "year");
-          const perMonth = interval === "year" ? p.yearly / 12 : p.monthly;
-          return (
-            <div
-              key={p.id}
-              className={cn(
-                "relative flex flex-col rounded-[28px] border p-7 transition",
-                p.highlight ? "border-chakra-500 bg-gradient-to-b from-chakra-500/15 to-transparent shadow-chakra" : "border-white/10 bg-white/[0.02] hover:border-white/25",
-              )}
-            >
-              {p.highlight && (
-                <span className="absolute -top-3 left-7 flex items-center gap-1 rounded-full bg-chakra-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-snow">
-                  <Zap className="h-3 w-3" /> Most popular
-                </span>
-              )}
-              <p className="font-display text-xl font-bold">{p.name}</p>
-              <p className="mt-4">
-                <span className="font-display text-5xl font-black">{usd(perMonth)}</span>
-                <span className="ml-2 text-white/50">/ month</span>
-              </p>
-              <p className="mt-1 text-sm text-white/45">
-                {interval === "year" ? (
-                  <>
-                    Billed {usd(p.yearly)} yearly · <s>{usd(p.monthly * 12)}</s>
-                  </>
-                ) : (
-                  "Billed monthly · cancel anytime"
-                )}
-              </p>
-              <p className="mt-3 text-sm text-chakra-300">
-                {p.credits.toLocaleString("en-US")} credits every month · up to {Math.floor(p.credits / CLIP_720)} HD clips
-              </p>
-              <ul className="mt-6 flex-1 space-y-3 text-sm">
-                {p.perks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2 text-white/75">
-                    <Check className="mt-0.5 h-4 w-4 flex-none text-chakra-400" /> {perk}
-                  </li>
-                ))}
-              </ul>
+      <div id="plans" className="mt-16 scroll-mt-28">
+        <div className="text-center">
+          <p className="eyebrow">Or subscribe</p>
+          <h3 className="mt-2 font-display text-3xl font-black">Monthly credits, lower unit price</h3>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-white/55">For creators editing every week. Credits refresh every billing month — cancel anytime.</p>
+        </div>
+        <div className="mt-6 flex justify-center">
+          <div className="flex rounded-full border border-white/10 bg-white/[0.04] p-1 text-sm font-semibold">
+            {(["month", "year"] as const).map((i) => (
               <button
+                key={i}
                 type="button"
-                onClick={() => choosePlan(p)}
-                disabled={loading === lookup || isCurrent || !canSwitch}
-                className={cn("mt-8 w-full", p.highlight ? "btn-primary" : "btn-ghost py-3")}
+                onClick={() => setBillingInterval(i)}
+                className={cn("rounded-full px-5 py-2 transition", interval === i ? "bg-chakra-500 text-snow" : "text-white/65 hover:text-white")}
               >
-                {loading === lookup ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : isCurrent ? (
-                  "Current plan"
-                ) : !current ? (
-                  `Get ${p.name}`
-                ) : canSwitch ? (
-                  `Upgrade to ${p.name}`
-                ) : (
-                  "Included in your plan"
-                )}
+                {i === "month" ? "Monthly" : "Yearly"}
+                {i === "year" && <span className={cn("ml-2 text-xs", interval === i ? "text-white/75" : "text-chakra-300")}>−{YEARLY_DISCOUNT * 100}%</span>}
               </button>
-            </div>
-          );
-        })}
+            ))}
+          </div>
+        </div>
+
+        <div className="mx-auto mt-8 grid max-w-3xl gap-4 lg:grid-cols-2">
+          {PLANS.map((p) => {
+            const lookup = planLookup(p.id, interval);
+            const isCurrent = current?.plan.id === p.id && current.interval === interval;
+            const canSwitch =
+              !current ||
+              (p.rank > current.plan.rank && !(current.interval === "year" && interval === "month")) ||
+              (p.rank === current.plan.rank && current.interval === "month" && interval === "year");
+            const perMonth = interval === "year" ? p.yearly / 12 : p.monthly;
+            const label = loading === lookup ? null : isCurrent ? (
+              "Current plan"
+            ) : !current ? (
+              `Get ${p.name}`
+            ) : !canSwitch ? (
+              current.plan.rank > p.rank ? "Your plan is higher" : "Billed yearly"
+            ) : (
+              `Upgrade to ${p.name}`
+            );
+            return (
+              <div
+                key={p.id}
+                className={cn(
+                  "relative flex flex-col rounded-[28px] border p-7 transition",
+                  p.highlight ? "border-chakra-500 bg-gradient-to-b from-chakra-500/15 to-transparent shadow-chakra" : "border-white/10 bg-white/[0.02] hover:border-white/25",
+                )}
+              >
+                {p.highlight && (
+                  <span className="absolute -top-3 left-7 flex items-center gap-1 rounded-full bg-chakra-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-snow">
+                    <Zap className="h-3 w-3" /> Most popular
+                  </span>
+                )}
+                <p className="font-display text-xl font-bold">{p.name}</p>
+                <p className="mt-4">
+                  <span className="font-display text-5xl font-black">{usd(perMonth)}</span>
+                  <span className="ml-2 text-white/50">/ month</span>
+                </p>
+                <p className="mt-1 text-sm text-white/45">
+                  {interval === "year" ? (
+                    <>
+                      Billed {usd(p.yearly)} yearly · <s>{usd(p.monthly * 12)}</s>
+                    </>
+                  ) : (
+                    "Billed monthly · cancel anytime"
+                  )}
+                </p>
+                <p className="mt-3 text-sm text-chakra-300">
+                  {p.credits.toLocaleString("en-US")} credits every month · up to {Math.floor(p.credits / CLIP_720)} HD clips ({PACK_VIDEO_SECONDS}s)
+                </p>
+                <ul className="mt-6 flex-1 space-y-3 text-sm">
+                  {p.perks.map((perk) => (
+                    <li key={perk} className="flex items-start gap-2 text-white/75">
+                      <Check className="mt-0.5 h-4 w-4 flex-none text-chakra-400" /> {perk}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => choosePlan(p)}
+                  disabled={loading === lookup || isCurrent || !canSwitch}
+                  className={cn("mt-8 w-full", p.highlight ? "btn-primary" : "btn-ghost py-3")}
+                >
+                  {loading === lookup ? <Loader2 className="h-4 w-4 animate-spin" /> : label}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="mx-auto mt-6 flex max-w-3xl items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70">
         <Gift className="h-5 w-5 flex-none text-chakra-400" />
         <span>
-          <b className="text-white">Free to try:</b> new accounts get {FREE_TRIAL.credits} credits — one {FREE_TRIAL.seconds}s {FREE_TRIAL.resolution} clip in any mode (with a small watermark — every plan exports clean). Monthly credits refresh each billing month and unused ones expire; yearly plans drop a fresh batch every month.
+          <b className="text-white">Free to try:</b> new accounts get {FREE_TRIAL.credits} credits — one {FREE_TRIAL.seconds}s {FREE_TRIAL.resolution} clip in any mode (with a small watermark — every plan exports clean). Pack credits never expire; plan credits refresh each billing month and unused ones expire at month end.
         </span>
-      </div>
-
-      <div className="mt-14">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="eyebrow">Credit packs</p>
-            <h3 className="mt-2 font-display text-3xl font-black">Top up anytime</h3>
-          </div>
-          <p className="flex items-center gap-2 text-sm text-white/50">
-            {subscribed ? <Package className="h-4 w-4 text-chakra-400" /> : <Lock className="h-4 w-4" />}
-            {subscribed ? "Pack credits never expire and are used after your monthly credits" : "Available with any active plan"}
-          </p>
-        </div>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {CREDIT_PACKS.map((pack) => (
-            <button
-              key={pack.lookup}
-              type="button"
-              onClick={() => buyPack(pack)}
-              disabled={loading === pack.lookup}
-              className={cn(
-                "flex items-center justify-between rounded-2xl border p-5 text-left transition",
-                subscribed || CONFIG.demoMode ? "border-white/15 bg-white/[0.03] hover:border-chakra-400" : "border-white/5 bg-white/[0.015] opacity-60",
-              )}
-            >
-              <span>
-                <span className="block font-display text-2xl">{pack.credits.toLocaleString("en-US")} credits</span>
-                <span className="text-xs text-white/50">+{Math.floor(pack.credits / CLIP_720)} HD clips · never expire</span>
-              </span>
-              <span className="flex items-center gap-2 font-semibold">
-                {loading === pack.lookup ? <Loader2 className="h-4 w-4 animate-spin" /> : usd(pack.price)}
-                {!subscribed && !CONFIG.demoMode && <Lock className="h-3.5 w-3.5 text-white/50" />}
-              </span>
-            </button>
-          ))}
-        </div>
       </div>
 
       {!compact && (

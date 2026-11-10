@@ -413,6 +413,8 @@ export interface Plan {
   yearly: number;
   highlight?: boolean;
   perks: string[];
+  /** 已下架、仅用于识别现有订阅的套餐 */
+  legacy?: boolean;
 }
 
 export const YEARLY_DISCOUNT = 0.2;
@@ -437,6 +439,13 @@ export const PLANS: Plan[] = [
     highlight: true,
     perks: ["~3 min of HD video every month", "1080p unlocked", "Priority queue", "Commercial use"],
   },
+];
+
+/**
+ * Studio 已下架：不再展示、不再售卖，仅用于让现有 Studio 订阅用户在
+ * “My plan” 里看到自己的套餐。已有订阅继续按原价续费。
+ */
+export const LEGACY_PLANS: Plan[] = [
   {
     id: "studio",
     name: "Studio",
@@ -444,15 +453,18 @@ export const PLANS: Plan[] = [
     credits: 3000,
     monthly: 129.99,
     yearly: 1247.9,
+    legacy: true,
     perks: ["~5.5 min of HD video every month", "1080p everywhere", "Fastest queue", "Commercial use"],
   },
 ];
+
+export const ALL_PLANS = [...PLANS, ...LEGACY_PLANS];
 
 export const planLookup = (plan: PlanId, interval: BillingInterval) => `genjutsu_${plan}_${interval}`;
 
 export function planFromLookup(lookup?: string | null): { plan: Plan; interval: BillingInterval } | null {
   const m = /^genjutsu_(starter|pro|studio)_(month|year)$/.exec(lookup ?? "");
-  const plan = m && PLANS.find((p) => p.id === m[1]);
+  const plan = m && ALL_PLANS.find((p) => p.id === m[1]);
   return plan ? { plan, interval: m![2] as BillingInterval } : null;
 }
 
@@ -462,12 +474,19 @@ export interface CreditPack {
   lookup: string;
 }
 
-/** 永久积分包，仅限有效订阅用户购买 */
+/** 永久积分包：无需订阅，所有模式通用；1 站点积分 = 10 kinkora coins */
 export const CREDIT_PACKS: CreditPack[] = [
+  { credits: 100, price: 9.99, lookup: "genjutsu_pack_100" },
+  { credits: 300, price: 24.99, lookup: "genjutsu_pack_300" },
   { credits: 500, price: 34.99, lookup: "genjutsu_pack_500" },
-  { credits: 1500, price: 89.99, lookup: "genjutsu_pack_1500" },
-  { credits: 3000, price: 169.99, lookup: "genjutsu_pack_3000" },
 ];
+
+/** 包卡上的「1 条视频」按 10s 720p 计（90 credits） */
+export const PACK_VIDEO_BASIS: Resolution = "720p";
+export const PACK_VIDEO_SECONDS = 10;
+
+export const packVideos = (pack: CreditPack, resolution: Resolution = PACK_VIDEO_BASIS, seconds = PACK_VIDEO_SECONDS) =>
+  Math.floor(pack.credits / Math.ceil((seconds * COINS_PER_SOURCE_SECOND[resolution]) / COINS_PER_CREDIT));
 
 /** 注册赠送：够任意示例（≤10 秒 480p）完整跑一次；与后端 DEFAULT_USER_CREDITS=500 金币对应（需通过设备指纹 / 邮箱风控） */
 export const FREE_TRIAL = { credits: 50, seconds: 10, resolution: "480p" as Resolution };

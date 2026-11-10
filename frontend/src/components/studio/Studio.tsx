@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Check, Coins, LayoutGrid, Loader2, Music2, Play, Volume2, VolumeX, Wand2 } from "lucide-react";
-import { MODES, CONFIG, FREE_TRIAL, billableSeconds, estimateCredits, getMode, type Mode, type ModeId } from "@/config/site";
+import { MODES, CONFIG, billableSeconds, estimateCredits, getMode, type Mode, type ModeId } from "@/config/site";
 import { defaultSoundFor, soundChoicesFor, type VideoTemplate } from "@/config/templates";
 import { useStudioGeneration, type Asset, type Phase } from "@/hooks/useStudioGeneration";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -38,10 +38,9 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
   const [libraryOpen, setLibraryOpen] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
   const { phase, error, generate, reset } = useStudioGeneration();
-  const { user, credits, billing, openAuth, spendDemoCredits, refreshCredits } = useAuth();
+  const { user, credits, openAuth, spendDemoCredits, refreshCredits } = useAuth();
   const toast = useToast();
-  const subscribed = !!billing.subscription;
-  const toPricing = () => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+  const toPacks = () => (document.getElementById("packs") ?? document.getElementById("pricing"))?.scrollIntoView({ behavior: "smooth" });
 
   useEffect(() => setModeId(initialMode), [initialMode]);
 
@@ -102,13 +101,8 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
     if (tooLong) return toast(`Trim your clip to ${maxSec}s or less for ${mode.name}`, "error");
     if (!user) return openAuth();
     if (credits < cost) {
-      toast(
-        subscribed
-          ? "Not enough credits — top up with a credit pack"
-          : `Your free credits cover a ${FREE_TRIAL.seconds}s ${FREE_TRIAL.resolution} clip — trim your video or pick a plan`,
-        "error",
-      );
-      return toPricing();
+      toast("Not enough credits — top up with a credit pack", "error");
+      return toPacks();
     }
     try {
       const id = await generate({
@@ -128,8 +122,8 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
     } catch (e: any) {
       if (e?.code === "AUTH_REQUIRED") openAuth();
       if (e?.code === "INSUFFICIENT_CREDITS") {
-        toast(subscribed ? "Not enough credits — top up with a credit pack" : "Not enough credits — pick a plan to keep going", "error");
-        toPricing();
+        toast("Not enough credits — top up with a credit pack", "error");
+        toPacks();
       }
       if (e?.code === "TOO_MANY_RUNNING") {
         toast(e.message, "info");
@@ -138,13 +132,7 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
     }
   };
 
-  const setOption = (key: string, value: string) => {
-    if (key === "resolution" && value !== "480p" && !subscribed && !CONFIG.demoMode) {
-      toast("HD is included with every plan", "info");
-      return toPricing();
-    }
-    setOptions((s) => ({ ...s, [key]: value }));
-  };
+  const setOption = (key: string, value: string) => setOptions((s) => ({ ...s, [key]: value }));
 
   const pickTemplate = (t: VideoTemplate) => {
     if (busy) return;
@@ -319,7 +307,6 @@ export function Studio({ initialMode = "motion-transfer", routeOnSwitch = false,
                         onChange={(v) => setOption(o.key, v)}
                         options={choices.map((c) => ({
                           ...c,
-                          locked: o.key === "resolution" && c.value !== "480p" && !subscribed && !CONFIG.demoMode,
                         }))}
                       />
                     </div>

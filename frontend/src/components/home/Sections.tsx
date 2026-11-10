@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Eye, Fingerprint, Layers, Lock, Minus, Plus, ScanLine, ShieldCheck, Sparkles, Waves } from "lucide-react";
-import { FREE_TRIAL, MODES, PLANS, creditsPerSecond, type Mode } from "@/config/site";
+import { CREDIT_PACKS, FREE_TRIAL, MODES, PLANS, creditsPerSecond, type Mode } from "@/config/site";
 import { CompareSlider } from "@/components/studio/CompareSlider";
 import { cn } from "@/lib/cn";
 
@@ -217,17 +217,17 @@ export const FAQS = [
   { q: "Does it work with anime and 3D characters?", a: "Yes. The engine is style-preserving: photoreal stays photoreal, 3D stays 3D and anime keeps its line art and cel shading." },
   {
     q: "How much does it cost?",
-    a: `New accounts get ${FREE_TRIAL.credits} free credits — one ${FREE_TRIAL.seconds}s ${FREE_TRIAL.resolution} clip (watermarked). After that it's one rate for every mode: ${creditsPerSecond("480p")} credits per second at 480p, ${creditsPerSecond("720p")} at 720p HD and ${creditsPerSecond("1080p")} at 1080p. Plans start at $${PLANS[0].monthly}/month with ${PLANS[0].credits} credits (save 20% yearly), and failed renders are refunded automatically.`,
+    a: `New accounts get ${FREE_TRIAL.credits} free credits — one ${FREE_TRIAL.seconds}s ${FREE_TRIAL.resolution} clip (watermarked). After that it's one rate for every mode: ${creditsPerSecond("480p")} credits per second at 480p, ${creditsPerSecond("720p")} at 720p HD and ${creditsPerSecond("1080p")} at 1080p. Buy a one-off pack from $${CREDIT_PACKS[0].price} (${CREDIT_PACKS[0].credits} credits, one 10s 720p clip) with no subscription — or subscribe from $${PLANS[0].monthly}/month for monthly credits (save 20% yearly). Failed renders are refunded automatically.`,
   },
   {
     q: "Do credits expire?",
-    a: "Plan credits are issued every billing month and expire at the end of that month — yearly plans get a fresh batch each month. Credit packs (for subscribers) never expire and are only used once your monthly credits run out.",
+    a: "Pack credits never expire and work in every mode — no subscription needed. Plan credits are issued every billing month and expire at the end of that month; yearly plans get a fresh batch each month.",
   },
   {
     q: "Can I upgrade or cancel?",
     a: "Upgrade anytime: you pay only the prorated difference and the extra credits land immediately. Cancel anytime and keep using your plan until the end of the billing period.",
   },
-  { q: "Can I use the results commercially?", a: "Yes on Creator and Studio packs, as long as you own or have permission for every likeness and clip you upload." },
+  { q: "Can I use the results commercially?", a: "Yes on every paid plan and credit pack, as long as you own or have permission for every likeness and clip you upload." },
 ];
 
 export function FAQ() {

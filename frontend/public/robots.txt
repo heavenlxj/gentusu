@@ -3,4 +3,4 @@ Allow: /
 Disallow: /library
 Disallow: /api/
 
-Sitemap: https://genjutsusi.app/sitemap.xml
+Sitemap: https://www.genjutsusi.app/sitemap.xml

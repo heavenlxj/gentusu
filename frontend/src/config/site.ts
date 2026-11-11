@@ -3,10 +3,10 @@ export const SITE = {
   kanji: "幻術",
   domain: "genjutsusi.app",
   supportEmail: "support@genjutsusi.app",
-  url: "https://genjutsusi.app",
+  url: "https://www.genjutsusi.app",
   ogImage: "https://storage.genjutsusi.app/brand/og-image.png",
   /** 姊妹站：Hotel Lobby 爆款模板 */
-  sisterUrl: "https://hotellobbysi.app",
+  sisterUrl: "https://www.hotellobbysi.app",
 };
 
 const env = import.meta.env;

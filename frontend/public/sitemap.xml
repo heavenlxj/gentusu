@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
-    <loc>https://genjutsusi.app/</loc>
+    <loc>https://www.genjutsusi.app/</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://genjutsusi.app/motion-transfer</loc>
+    <loc>https://www.genjutsusi.app/motion-transfer</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -19,7 +19,7 @@
     </video:video>
   </url>
   <url>
-    <loc>https://genjutsusi.app/character-swap</loc>
+    <loc>https://www.genjutsusi.app/character-swap</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -31,7 +31,7 @@
     </video:video>
   </url>
   <url>
-    <loc>https://genjutsusi.app/outfit-swap</loc>
+    <loc>https://www.genjutsusi.app/outfit-swap</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -43,7 +43,7 @@
     </video:video>
   </url>
   <url>
-    <loc>https://genjutsusi.app/object-swap</loc>
+    <loc>https://www.genjutsusi.app/object-swap</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -55,7 +55,7 @@
     </video:video>
   </url>
   <url>
-    <loc>https://genjutsusi.app/background-swap</loc>
+    <loc>https://www.genjutsusi.app/background-swap</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -67,7 +67,7 @@
     </video:video>
   </url>
   <url>
-    <loc>https://genjutsusi.app/restyle</loc>
+    <loc>https://www.genjutsusi.app/restyle</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -79,7 +79,7 @@
     </video:video>
   </url>
   <url>
-    <loc>https://genjutsusi.app/face-swap</loc>
+    <loc>https://www.genjutsusi.app/face-swap</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -91,31 +91,31 @@
     </video:video>
   </url>
   <url>
-    <loc>https://genjutsusi.app/what-is-genjutsu-ai</loc>
+    <loc>https://www.genjutsusi.app/what-is-genjutsu-ai</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://genjutsusi.app/higgsfield-genjutsu-alternative</loc>
+    <loc>https://www.genjutsusi.app/higgsfield-genjutsu-alternative</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://genjutsusi.app/pricing</loc>
+    <loc>https://www.genjutsusi.app/pricing</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://genjutsusi.app/privacy</loc>
+    <loc>https://www.genjutsusi.app/privacy</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://genjutsusi.app/terms</loc>
+    <loc>https://www.genjutsusi.app/terms</loc>
     <lastmod>2026-10-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
